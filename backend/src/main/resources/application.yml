@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: travelling_app_be
+  data:
+    mongodb:
+      uri: mongodb+srv://admin:truongtranhung27012005@cluster0.q6gisy3.mongodb.net/travelling_db?retryWrites=true&w=majority&appName=Cluster0
+    redis:
+      host: localhost
+      port: 6379

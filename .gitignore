@@ -1,0 +1,17 @@
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+*.log
+
+# Java / Maven
+**/target/
+*.class
+.idea/
+*.iml
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db
