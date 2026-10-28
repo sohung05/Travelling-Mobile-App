@@ -5,10 +5,57 @@ server:
 
 spring:
   application:
-    name: travelling_app_be
+    name: Travelling_App_BE
+  
   data:
     mongodb:
+      # MongoDB Atlas connection string
+      # Format: mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
+      # Thay thế <username>, <password>, <cluster>, và <database> bằng thông tin của bạn
+      # Lưu ý: Nếu password có ký tự đặc biệt, cần URL-encode (ví dụ: @ -> %40, # -> %23, / -> %2F)
       uri: mongodb+srv://admin:truongtranhung27012005@cluster0.q6gisy3.mongodb.net/travelling_db?retryWrites=true&w=majority&appName=Cluster0
+      auto-index-creation: false
+      
     redis:
       host: localhost
       port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+      
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1800000  # 30 phút default (sẽ được override bởi CacheConfig)
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForTravellingApp2024}
+  expiration: 86400000 # 24 hours
+
+# External APIs
+external:
+  apis:
+    unsplash:
+      access-key: ${UNSPLASH_ACCESS_KEY:your-unsplash-key}
+      base-url: https://api.unsplash.com
+    openweather:
+      api-key: ${OPENWEATHER_API_KEY:your-openweather-key}
+      base-url: https://api.openweathermap.org
+
+# Logging
+logging:
+  level:
+    fit.se.travelling_app_be: DEBUG
+    org.springframework.web: INFO
+    org.springframework.data.mongodb: DEBUG
+
+# OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
