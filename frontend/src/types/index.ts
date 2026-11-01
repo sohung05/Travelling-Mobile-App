@@ -116,11 +116,11 @@ export interface ChatMessage {
 }
 
 export interface MainTabParamList {
+  [key: string]: any;
   Home: undefined;
   Explore: undefined;
   Bookings: undefined;
   Favorites: undefined;
   Profile: undefined;
 }
-
 
