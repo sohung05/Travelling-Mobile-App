@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -12,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 // Screens
 import LoadingScreen from '../screens/LoadingScreen';
+
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import RegisterSuccessScreen from '../screens/RegisterSuccessScreen';
@@ -21,6 +21,7 @@ import BookingsScreen from '../screens/BookingsScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import DestinationDetailScreen from '../screens/DestinationDetailScreen';
+
 import BookingDetailScreen from '../screens/BookingDetailScreen';
 import PersonalInfoScreen from '../screens/PersonalInfoScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -149,6 +150,7 @@ const MainTabs = () => {
           tabBarLabel: 'Profile',
         }}
       />
+
     </Tab.Navigator>
   );
 };
@@ -157,6 +159,7 @@ export const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
+
         screenOptions={{
           headerShown: false,
           animation: 'none',
@@ -164,6 +167,7 @@ export const AppNavigator = () => {
         initialRouteName="Loading"
       >
         <Stack.Screen name="Loading" component={LoadingScreen} />
+
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
@@ -265,7 +269,9 @@ export const AppNavigator = () => {
             animation: 'slide_from_bottom',
           }}
         />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
+
