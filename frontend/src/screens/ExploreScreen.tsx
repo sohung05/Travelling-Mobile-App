@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination, DestinationCategory, SearchFilters } from '../types';
 import { destinationService, userService, useDestinations } from '../api';
-import { SearchBar, Loading, FilterModal } from '../components';
+import { SearchBar, Loading, FilterModal, SectionEyebrow } from '../components';
 import { FilterOptions } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -341,6 +341,11 @@ const ExploreScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with Section Eyebrow */}
       <View style={styles.header}>
+        <SectionEyebrow 
+          title="Tìm kiếm điểm đến" 
+          subtitle="Khám phá các hành trình tuyệt vời trên thế giới"
+          style={{ paddingHorizontal: 0, marginBottom: 0 }}
+        />
       </View>
 
       {/* Search Input Area */}
@@ -721,6 +726,7 @@ const styles = StyleSheet.create({
 });
 
 export default ExploreScreen;
+
 
 
 

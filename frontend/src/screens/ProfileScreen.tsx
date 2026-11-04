@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Switch,
-  Modal,
-  Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,17 +17,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES, FONTS, SHADOWS, DEFAULT_AVATAR } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { Loading, Button } from '../components';
+import { Loading, SectionEyebrow, Button } from '../components';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ProfileScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, isGuest, logout, userBookings, userFavorites, isLoading, setPendingScreenAccess } = useAuth();
-  const [loading] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
-  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
@@ -111,28 +107,22 @@ const ProfileScreen = () => {
       navigation.navigate('Login');
       return;
     }
-
-    setLogoutError(null);
-    setShowLogoutConfirmation(true);
-  };
-
-  const confirmLogout = async () => {
-    setIsLoggingOut(true);
-    setLogoutError(null);
-
-    try {
-      await logout();
-      setShowLogoutConfirmation(false);
-      navigation.getParent()?.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      console.error('Failed to log out:', error);
-      setLogoutError('Không thể đăng xuất. Vui lòng thử lại.');
-    } finally {
-      setIsLoggingOut(false);
-    }
+    
+    Alert.alert(
+      'Đăng xuất',
+      'Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        { 
+          text: 'Đăng xuất', 
+          style: 'destructive',
+          onPress: () => {
+            logout();
+            navigation.replace('Login');
+          }
+        },
+      ]
+    );
   };
   
   const handleLogin = () => {
@@ -147,6 +137,11 @@ const ProfileScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <SectionEyebrow 
+          title="Hồ sơ tài khoản" 
+          subtitle="Quản lý thông tin và cài đặt ứng dụng"
+          style={{ paddingHorizontal: 0, marginBottom: 0 }}
+        />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -224,6 +219,7 @@ const ProfileScreen = () => {
 
         {/* Settings Section */}
         <View style={styles.section}>
+          <SectionEyebrow title="Tùy chọn ứng dụng" style={{ paddingHorizontal: 0, marginBottom: SIZES.sm }} />
           
           <View style={styles.menuCard}>
             {/* Notifications Toggle */}
@@ -291,6 +287,7 @@ const ProfileScreen = () => {
 
         {/* Support Section */}
         <View style={styles.section}>
+          <SectionEyebrow title="Hỗ trợ & Thông tin" style={{ paddingHorizontal: 0, marginBottom: SIZES.sm }} />
           
           <View style={styles.menuCard}>
             {supportItems.map((item, index) => (
@@ -327,47 +324,6 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           </View>
         )}
-
-        <Modal
-          transparent
-          animationType="fade"
-          visible={showLogoutConfirmation}
-          onRequestClose={() => {
-            if (!isLoggingOut) setShowLogoutConfirmation(false);
-          }}
-        >
-          <View style={styles.logoutModalOverlay}>
-            <View style={styles.logoutModal}>
-              <Text style={styles.logoutModalTitle}>Đăng xuất</Text>
-              <Text style={styles.logoutModalMessage}>
-                Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?
-              </Text>
-              {logoutError && (
-                <Text style={styles.logoutError}>{logoutError}</Text>
-              )}
-              <View style={styles.logoutModalActions}>
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={isLoggingOut}
-                  onPress={() => setShowLogoutConfirmation(false)}
-                  style={styles.logoutCancelButton}
-                >
-                  <Text style={styles.logoutCancelText}>Hủy</Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={isLoggingOut}
-                  onPress={confirmLogout}
-                  style={styles.logoutConfirmButton}
-                >
-                  <Text style={styles.logoutConfirmText}>
-                    {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Modal>
 
         <View style={{ height: 130 }} />
       </ScrollView>
@@ -532,62 +488,6 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.body2,
     color: '#EF4444',
-  },
-  logoutModalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: SIZES.xl,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-  },
-  logoutModal: {
-    backgroundColor: COLORS.surface,
-    borderRadius: SIZES.cardRadius,
-    padding: SIZES.xl,
-  },
-  logoutModalTitle: {
-    ...FONTS.bold,
-    color: COLORS.ink,
-    fontSize: SIZES.h3,
-  },
-  logoutModalMessage: {
-    ...FONTS.regular,
-    color: COLORS.slate,
-    fontSize: SIZES.body2,
-    marginTop: SIZES.sm,
-  },
-  logoutError: {
-    ...FONTS.medium,
-    color: '#EF4444',
-    fontSize: SIZES.body3,
-    marginTop: SIZES.sm,
-  },
-  logoutModalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: SIZES.sm,
-    marginTop: SIZES.xl,
-  },
-  logoutCancelButton: {
-    justifyContent: 'center',
-    paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.sm,
-  },
-  logoutCancelText: {
-    ...FONTS.semiBold,
-    color: COLORS.slate,
-    fontSize: SIZES.body2,
-  },
-  logoutConfirmButton: {
-    justifyContent: 'center',
-    backgroundColor: '#EF4444',
-    borderRadius: SIZES.radiusFull,
-    paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.sm,
-  },
-  logoutConfirmText: {
-    ...FONTS.semiBold,
-    color: COLORS.white,
-    fontSize: SIZES.body2,
   },
   loginPrompt: {
     paddingHorizontal: SIZES.lg,
