@@ -1,8 +1,9 @@
 package fit.se.travelling_app_be.dto.request;
 
+import lombok.Data;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
 @Data
 public class LoginRequest {

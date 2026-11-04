@@ -16,10 +16,10 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
-import { PLACEHOLDER_IMAGES } from '../constants/images';
+import { CHATBOT_ASSETS, PLACEHOLDER_IMAGES } from '../constants/images';
 import { Destination, DestinationCategory } from '../types';
 import { useDestinations } from '../api';
-import { DestinationCard, CategoryCard, NotificationModal } from '../components';
+import { DestinationCard, CategoryCard, NotificationModal, SectionEyebrow, ChatbotFAB } from '../components';
 import { FilterModal, FilterOptions } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -310,6 +310,11 @@ const HomeScreen = () => {
 
         {/* Section 1: Trending destinations */}
         <View style={styles.section}>
+          <SectionEyebrow
+            title="Trending destinations"
+            actionText="See all"
+            onActionPress={() => navigation.navigate('MainTabs', { screen: 'Explore' })}
+          />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -332,6 +337,11 @@ const HomeScreen = () => {
 
         {/* Section 2: Explore nearby */}
         <View style={styles.section}>
+          <SectionEyebrow
+            title="Explore nearby"
+            actionText="See all"
+            onActionPress={() => navigation.navigate('MainTabs', { screen: 'Explore' })}
+          />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -368,6 +378,11 @@ const HomeScreen = () => {
         {/* Section 3: Popular / Filtered destinations */}
         {selectedCategory && (
           <View style={styles.section}>
+            <SectionEyebrow
+              title={`Popular in ${selectedCategory}`}
+              actionText="Reset filter"
+              onActionPress={() => setSelectedCategory(null)}
+            />
             <View style={styles.gridContainer}>
               {popularDestinations.map((destination) => {
                 const isFav = userFavorites.some(fav => fav.id === destination.id);
@@ -444,6 +459,12 @@ const HomeScreen = () => {
         onClose={() => setShowFilterModal(false)}
         onApplyFilters={handleApplyFilters}
         currentFilters={currentFilters}
+      />
+
+      {/* Floating Action Button (FAB) AI Chatbot giống hệt như ảnh thiết kế */}
+      <ChatbotFAB
+        onPress={() => navigation.navigate('ChatBot')}
+        customImageSource={CHATBOT_ASSETS.explorerRobot3D}
       />
 
     </SafeAreaView>

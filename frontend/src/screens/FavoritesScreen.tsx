@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList } from '../types';
-import { Button } from '../components';
+import { SectionEyebrow, Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -51,6 +51,11 @@ const FavoritesScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <SectionEyebrow 
+          title="Danh sách yêu thích" 
+          subtitle={userFavorites.length > 0 ? `${userFavorites.length} điểm đến bạn đã lưu lại` : undefined}
+          style={{ paddingHorizontal: 0, marginBottom: 0 }}
+        />
       </View>
 
       <ScrollView

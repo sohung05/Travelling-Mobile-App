@@ -18,6 +18,7 @@ import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navig
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { SectionEyebrow } from '../components';
 
 // Map rendering: Use WebView for all platforms (web, Android, iOS)
 // react-native-maps requires native modules and causes TurboModule errors in Expo Go
@@ -428,6 +429,7 @@ const DestinationDetailScreen = () => {
 
         {/* Description */}
         <View style={styles.section}>
+          <SectionEyebrow title="Mô tả điểm đến" style={{ paddingHorizontal: 0 }} />
           <Text
             style={styles.description}
             numberOfLines={expandedDescription ? undefined : 4}
@@ -454,6 +456,7 @@ const DestinationDetailScreen = () => {
         {/* What's Included Section - Horizontal Pills */}
         {servicesToShow.length > 0 && (
           <View style={styles.section}>
+            <SectionEyebrow title="Dịch vụ bao gồm" style={{ paddingHorizontal: 0 }} />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -471,6 +474,7 @@ const DestinationDetailScreen = () => {
 
         {/* Location/Map Section */}
         <View style={styles.section}>
+          <SectionEyebrow title="Vị trí & Bản đồ" style={{ paddingHorizontal: 0 }} />
           <View style={styles.mapContainer}>
             {(() => {
               const coords = getDestinationCoordinates(destination);
@@ -695,6 +699,13 @@ const DestinationDetailScreen = () => {
 
         {/* Reviews Section */}
         <View style={styles.section}>
+          <SectionEyebrow 
+            title="Đánh giá từ du khách" 
+            style={{ paddingHorizontal: 0 }}
+            actionText={reviews.length > 4 ? "Xem tất cả" : undefined}
+            onActionPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
+          />
+
           {reviews.length > 0 ? (
             <View>
               {reviews.slice(0, 4).map((review, index) => (

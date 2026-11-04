@@ -4,11 +4,11 @@ import fit.se.travelling_app_be.dto.request.ReviewRequest;
 import fit.se.travelling_app_be.dto.response.ApiResponse;
 import fit.se.travelling_app_be.entity.Review;
 import fit.se.travelling_app_be.service.ReviewService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
