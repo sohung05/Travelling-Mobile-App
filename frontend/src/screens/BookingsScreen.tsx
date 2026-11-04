@@ -17,7 +17,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Booking } from '../types';
 import { bookingService, userService } from '../api';
-import { Loading } from '../components';
+
+
+import { Loading, SectionEyebrow } from '../components';
+
 import { useAuth } from '../contexts/AuthContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -304,6 +307,13 @@ const BookingsScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with Section Eyebrow */}
       <View style={styles.header}>
+
+        <SectionEyebrow 
+          title="Chuyến đi của tôi" 
+          subtitle="Quản lý lịch trình và lịch sử đặt vé"
+          style={{ paddingHorizontal: 0, marginBottom: 0 }}
+        />
+
       </View>
 
       {/* Capsule Tabs */}
@@ -774,6 +784,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
-
 export default BookingsScreen;
-
