@@ -8,6 +8,8 @@ import {
   Image,
   Alert,
   Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,13 +43,48 @@ const TourServicesScreen = () => {
   const { destination } = route.params;
   const { isGuest } = useAuth();
 
+  const getTomorrow = () => {
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 1);
+    nextDate.setHours(0, 0, 0, 0);
+    return nextDate;
+  };
+
+  const isSameDay = (a: Date, b: Date) => {
+    return a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+  };
+
+  const getCalendarGrid = (monthDate: Date) => {
+    const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    const lastDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+    const startWeekday = firstDayOfMonth.getDay();
+    const days: Array<Date | null> = [];
+
+    for (let i = 0; i < startWeekday; i++) {
+      days.push(null);
+    }
+
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+      days.push(new Date(monthDate.getFullYear(), monthDate.getMonth(), day));
+    }
+
+    while (days.length % 7 !== 0) {
+      days.push(null);
+    }
+
+    return days;
+  };
+
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState(destination.price);
   const [departureDate, setDepartureDate] = useState<string>('');
   const [returnDate, setReturnDate] = useState<string>(''); // Auto-calculated
   const [participants, setParticipants] = useState<number>(1);
   const [showDeparturePicker, setShowDeparturePicker] = useState(false);
-  const [selectedDepartureDate, setSelectedDepartureDate] = useState(new Date());
+  const [selectedDepartureDate, setSelectedDepartureDate] = useState<Date>(getTomorrow());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(getTomorrow());
 
   const tourServices: TourService[] = [
     {
@@ -188,17 +225,49 @@ const TourServicesScreen = () => {
   // Date picker handlers
   const onDepartureDateChange = (event: any, selectedDate?: Date) => {
     setShowDeparturePicker(false);
+
+    if (event?.type === 'dismissed') {
+      return;
+    }
+
     if (selectedDate) {
-      setSelectedDepartureDate(selectedDate);
-      setDepartureDate(selectedDate.toLocaleDateString('vi-VN'));
-      
+      const nextDate = new Date(selectedDate);
+      nextDate.setHours(0, 0, 0, 0);
+
+      setSelectedDepartureDate(nextDate);
+      setDepartureDate(nextDate.toLocaleDateString('vi-VN'));
+
       // Auto-calculate return date based on tour duration
       const durationDays = parseInt(destination.duration?.match(/\d+/)?.[0] || '7');
-      const returnDateObj = new Date(selectedDate);
+      const returnDateObj = new Date(nextDate);
       returnDateObj.setDate(returnDateObj.getDate() + durationDays);
       setReturnDate(returnDateObj.toLocaleDateString('vi-VN'));
     }
   };
+
+  const openDeparturePicker = () => {
+    const nextDate = selectedDepartureDate || getTomorrow();
+    setSelectedDepartureDate(nextDate);
+    setCalendarMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+    setShowDeparturePicker(true);
+  };
+
+  const chooseDepartureDate = (date: Date) => {
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
+
+    setSelectedDepartureDate(normalizedDate);
+    setDepartureDate(normalizedDate.toLocaleDateString('vi-VN'));
+
+    const durationDays = parseInt(destination.duration?.match(/\d+/)?.[0] || '7');
+    const returnDateObj = new Date(normalizedDate);
+    returnDateObj.setDate(returnDateObj.getDate() + durationDays);
+    setReturnDate(returnDateObj.toLocaleDateString('vi-VN'));
+    setShowDeparturePicker(false);
+  };
+
+  const minDepartureDate = getTomorrow();
+  const calendarDays = getCalendarGrid(calendarMonth);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -256,7 +325,9 @@ const TourServicesScreen = () => {
             </View>
             <TouchableOpacity
               style={styles.dateButton}
-              onPress={() => setShowDeparturePicker(true)}
+              activeOpacity={0.8}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              onPress={openDeparturePicker}
             >
               <Text style={styles.dateButtonText}>
                 {departureDate || 'Chọn ngày'}
@@ -487,14 +558,98 @@ const TourServicesScreen = () => {
       </View>
 
       {/* Date Picker - Only for departure date */}
-      {showDeparturePicker && (
-        <DateTimePicker
-          value={selectedDepartureDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDepartureDateChange}
-          minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Tomorrow
-        />
+      {Platform.OS === 'web' ? (
+        <Modal
+          visible={showDeparturePicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeparturePicker(false)}
+        >
+          <Pressable style={styles.pickerOverlay} onPress={() => setShowDeparturePicker(false)}>
+            <Pressable style={styles.webPickerContainer} onPress={() => undefined}>
+              <View style={styles.webPickerHeader}>
+                <TouchableOpacity
+                  style={styles.monthNavButton}
+                  onPress={() => setCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                >
+                  <Ionicons name="chevron-back" size={20} color={COLORS.ink} />
+                </TouchableOpacity>
+                <Text style={styles.webPickerTitle}>
+                  {calendarMonth.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
+                </Text>
+                <TouchableOpacity
+                  style={styles.monthNavButton}
+                  onPress={() => setCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                >
+                  <Ionicons name="chevron-forward" size={20} color={COLORS.ink} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.calendarWeekdaysRow}>
+                {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(day => (
+                  <Text key={day} style={styles.calendarWeekday}>{day}</Text>
+                ))}
+              </View>
+
+              <View style={styles.calendarGrid}>
+                {calendarDays.map((date, index) => {
+                  if (!date) {
+                    return <View key={`empty-${index}`} style={styles.calendarDayPlaceholder} />;
+                  }
+
+                  const disabled = date < minDepartureDate;
+                  const selected = departureDate ? isSameDay(date, new Date(selectedDepartureDate)) : false;
+
+                  return (
+                    <TouchableOpacity
+                      key={date.toISOString()}
+                      style={[
+                        styles.calendarDay,
+                        selected && styles.calendarDaySelected,
+                        disabled && styles.calendarDayDisabled,
+                      ]}
+                      onPress={() => !disabled && chooseDepartureDate(date)}
+                      disabled={disabled}
+                    >
+                      <Text style={[
+                        styles.calendarDayText,
+                        selected && styles.calendarDayTextSelected,
+                        disabled && styles.calendarDayTextDisabled,
+                      ]}>
+                        {date.getDate()}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <View style={styles.webPickerActions}>
+                <TouchableOpacity style={styles.webPickerCancel} onPress={() => setShowDeparturePicker(false)}>
+                  <Text style={styles.webPickerCancelText}>Hủy</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : (
+        <Modal
+          visible={showDeparturePicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeparturePicker(false)}
+        >
+          <Pressable style={styles.pickerOverlay} onPress={() => setShowDeparturePicker(false)}>
+            <Pressable style={styles.pickerContainer} onPress={() => undefined}>
+              <DateTimePicker
+                value={selectedDepartureDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDepartureDateChange}
+                minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)} // Tomorrow
+              />
+            </Pressable>
+          </Pressable>
+        </Modal>
       )}
     </SafeAreaView>
   );
@@ -631,6 +786,112 @@ const styles = StyleSheet.create({
   dateButtonPlaceholder: {
     color: COLORS.slate,
     fontStyle: 'italic',
+  },
+  dateButtonInput: {
+    minWidth: 140,
+    color: COLORS.ink,
+  },
+  webPickerContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: SIZES.radiusLg,
+    borderTopRightRadius: SIZES.radiusLg,
+    padding: SIZES.lg,
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+  },
+  webPickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SIZES.md,
+  },
+  webPickerTitle: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body1,
+    color: COLORS.ink,
+    textTransform: 'capitalize',
+  },
+  monthNavButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.soft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarWeekdaysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SIZES.sm,
+  },
+  calendarWeekday: {
+    ...FONTS.medium,
+    fontSize: SIZES.caption,
+    color: COLORS.slate,
+    width: '14.28%',
+    textAlign: 'center',
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  calendarDayPlaceholder: {
+    width: '14.28%',
+    height: 36,
+    marginBottom: 8,
+  },
+  calendarDay: {
+    width: '14.28%',
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  calendarDaySelected: {
+    backgroundColor: COLORS.primary,
+  },
+  calendarDayDisabled: {
+    opacity: 0.35,
+  },
+  calendarDayText: {
+    ...FONTS.medium,
+    fontSize: SIZES.body2,
+    color: COLORS.ink,
+  },
+  calendarDayTextSelected: {
+    color: COLORS.white,
+  },
+  calendarDayTextDisabled: {
+    color: COLORS.slate,
+  },
+  webPickerActions: {
+    alignItems: 'flex-end',
+    marginTop: SIZES.md,
+  },
+  webPickerCancel: {
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.xs,
+    borderRadius: SIZES.radiusXl,
+    backgroundColor: COLORS.soft,
+  },
+  webPickerCancelText: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body2,
+    color: COLORS.ink,
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.25)',
+    justifyContent: 'flex-end',
+  },
+  pickerContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: SIZES.radiusLg,
+    borderTopRightRadius: SIZES.radiusLg,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
   },
   participantsContainer: {
     flexDirection: 'row',
