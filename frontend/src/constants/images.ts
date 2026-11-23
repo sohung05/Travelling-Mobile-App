@@ -3,7 +3,7 @@
 export const PLACEHOLDER_IMAGES = {
   destinations: {
     paris: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800',
-    tokyo: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800',
+    tokyo: 'https://dulichdaiviet.vn/uploaded/files/tokyo-for-digital-nomads.jpg',
     bali: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800',
     maldives: 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=800',
     switzerland: 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?w=800',

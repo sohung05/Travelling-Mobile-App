@@ -22,6 +22,7 @@ import { SearchBar, Loading, FilterModal, SectionEyebrow } from '../components';
 import { FilterOptions } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { formatDestinationPrice, getDestinationPrice, getDestinationReviewCount } from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -42,7 +43,7 @@ const ExploreScreen = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<FilterOptions>({
     priceRange: { min: 0, max: 7000000 },
-    countries: [],
+    locationScope: 'all',
     ratingRange: { min: 0, max: 5 },
     category: null,
   });
@@ -88,8 +89,15 @@ const ExploreScreen = () => {
   useEffect(() => {
     if (route.params?.initialFilters) {
       console.log(`🔍 Received initialFilters from route:`, route.params.initialFilters);
-      setCurrentFilters(route.params.initialFilters);
-      applyAdvancedFilters(route.params.initialFilters);
+      const incoming = route.params.initialFilters as any;
+      const normalizedFilters: FilterOptions = {
+        priceRange: incoming?.priceRange || { min: 0, max: 7000000 },
+        locationScope: incoming?.locationScope || 'all',
+        ratingRange: incoming?.ratingRange || { min: 0, max: 5 },
+        category: incoming?.category ?? null,
+      };
+      setCurrentFilters(normalizedFilters);
+      applyAdvancedFilters(normalizedFilters);
     }
   }, [route.params?.initialFilters]);
 
@@ -137,30 +145,29 @@ const ExploreScreen = () => {
     
     let filtered = [...destinations];
 
-    // Nếu không có filter nào, hiển thị 10 destinations có rating cao nhất
-    const hasNoFilters = !searchQuery && 
-                         !effectiveCategory && 
-                         filters.countries.length === 0 && 
-                         filters.ratingRange.min === 0 && 
-                         filters.ratingRange.max === 5 && 
+    // Nếu không có filter nào, hiển thị tất cả destinations
+    const locationScope = filters.locationScope || 'all';
+    const hasNoFilters = !searchQuery &&
+                         !effectiveCategory &&
+                         locationScope === 'all' &&
+                         filters.ratingRange.min === 0 &&
+                         filters.ratingRange.max === 5 &&
                          filters.priceRange.min === 0;
     
     console.log(`🔍 Checking no filters condition:`, {
       hasNoFilters,
       searchQuery,
       effectiveCategory,
-      countriesCount: filters.countries.length,
+      locationScope,
       ratingRange: filters.ratingRange,
       priceRange: filters.priceRange
     });
     
     if (hasNoFilters) {
-      console.log(`📊 No filters active, showing top 10 rated destinations`);
-      const topRated = [...destinations]
-        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-        .slice(0, 10);
-      console.log(`📊 Top 10 rated destinations count: ${topRated.length}`);
-      setFilteredDestinations(topRated);
+      console.log(`📊 No filters active, showing all destinations`);
+      const allResults = [...destinations].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      console.log(`📊 All destinations count: ${allResults.length}`);
+      setFilteredDestinations(allResults);
       return;
     }
 
@@ -219,18 +226,35 @@ const ExploreScreen = () => {
     // Default max price là 7000000, nên chỉ filter khi user thay đổi
     if (filters.priceRange.min > 0 || (filters.priceRange.max < 7000000 && filters.priceRange.max !== 9999)) {
       console.log(`📊 Applying price filter: ${filters.priceRange.min} - ${filters.priceRange.max}`);
-      filtered = filtered.filter(dest => 
-        dest.price >= filters.priceRange.min && dest.price <= filters.priceRange.max
-      );
+      filtered = filtered.filter(dest => {
+        const price = getDestinationPrice(dest);
+        return price >= filters.priceRange.min && price <= filters.priceRange.max;
+      });
       console.log(`📊 After price filter: ${filtered.length} destinations`);
     } else {
       console.log(`📊 Skipping price filter (default range)`);
     }
 
-    if (filters.countries.length > 0) {
-      console.log(`📊 Before countries filter: ${filtered.length} destinations`);
-      filtered = filtered.filter(dest => filters.countries.includes(dest.country));
-      console.log(`📊 After countries filter: ${filtered.length} destinations`);
+    const isDomesticDestination = (dest: Destination) => {
+      if (dest.type === 'DOMESTIC') return true;
+      if (dest.type === 'INTERNATIONAL') return false;
+      const normalized = (dest.country || '').trim().toLowerCase();
+      return (
+        normalized === 'vietnam' ||
+        normalized === 'việt nam' ||
+        normalized === 'viet nam'
+      );
+    };
+
+    const effectiveLocationScope = filters.locationScope || 'all';
+    if (effectiveLocationScope === 'domestic') {
+      console.log(`📊 Before location filter (domestic): ${filtered.length} destinations`);
+      filtered = filtered.filter((dest) => isDomesticDestination(dest));
+      console.log(`📊 After location filter (domestic): ${filtered.length} destinations`);
+    } else if (effectiveLocationScope === 'international') {
+      console.log(`📊 Before location filter (international): ${filtered.length} destinations`);
+      filtered = filtered.filter((dest) => !isDomesticDestination(dest));
+      console.log(`📊 After location filter (international): ${filtered.length} destinations`);
     }
 
     if (filters.ratingRange.min > 0 || filters.ratingRange.max < 5) {
@@ -259,15 +283,13 @@ const ExploreScreen = () => {
   const clearAllFilters = () => {
     setSearchQuery('');
     setCurrentFilters({
-      priceRange: { min: 0, max: 9999 },
-      countries: [],
+      priceRange: { min: 0, max: 7000000 },
+      locationScope: 'all',
       ratingRange: { min: 0, max: 5 },
       category: null,
     });
-    const topRated = [...destinations]
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      .slice(0, 10);
-    setFilteredDestinations(topRated);
+    const allResults = [...destinations].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    setFilteredDestinations(allResults);
   };
 
 
@@ -454,16 +476,27 @@ const ExploreScreen = () => {
 
                   <View style={styles.listCardRatingRow}>
                     <View style={styles.listCardRating}>
-                      {renderStars(destination.rating || 4.8)}
+                      {renderStars(destination.rating || 0)}
                     </View>
                     <Text style={styles.listCardReviewsText}>
-                      ({destination.reviews || 100})
+                      ({getDestinationReviewCount(destination)})
                     </Text>
+                  </View>
+
+                  <View style={styles.listCardMetaRow}>
+                    {!!destination.duration && (
+                      <Text style={styles.listCardMetaText}>{destination.duration}</Text>
+                    )}
+                    {!!(destination as any).type && (
+                      <Text style={styles.listCardMetaText}>
+                        {(destination as any).type === 'DOMESTIC' ? 'Trong nước' : 'Quốc tế'}
+                      </Text>
+                    )}
                   </View>
 
                   <View style={styles.listCardPriceRow}>
                     <Text style={styles.pricePrefix}>Giá từ</Text>
-                    <Text style={styles.listCardPrice}>${destination.price}</Text>
+                    <Text style={styles.listCardPrice}>{formatDestinationPrice(destination)}</Text>
                   </View>
                 </View>
 
@@ -666,6 +699,21 @@ const styles = StyleSheet.create({
     ...FONTS.regular,
     fontSize: 11,
     color: COLORS.textSecondary,
+  },
+  listCardMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 6,
+  },
+  listCardMetaText: {
+    ...FONTS.medium,
+    fontSize: 10,
+    color: COLORS.slate,
+    backgroundColor: '#EFF6F5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
   },
   listCardPriceRow: {
     flexDirection: 'row',

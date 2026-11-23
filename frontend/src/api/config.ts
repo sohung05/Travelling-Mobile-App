@@ -26,10 +26,10 @@ import { Platform } from 'react-native';
 // ============================================
 
 // IP local của máy tính (thay bằng IP của bạn)
-const LOCAL_IP = '192.168.1.27'; // ⚠️ THAY ĐỔI IP NÀY!
+const LOCAL_IP = '172.16.0.166'; // ⚠️ THAY ĐỔI IP NÀY!
 
 // URL backend production (nếu deploy cloud)
-const PRODUCTION_URL = 'https://your-production-api.com/api'; // ⚠️ THAY ĐỔI URL NÀY!
+const PRODUCTION_URL = 'https://172.16.0.166:8080/api'; // ⚠️ THAY ĐỔI URL NÀY!
 
 const getBaseUrl = () => {
   if (__DEV__) {

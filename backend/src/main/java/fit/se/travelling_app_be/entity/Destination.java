@@ -50,6 +50,10 @@ public class Destination {
     
     @Indexed
     private Boolean popular = false;
+
+    // Travel scope: DOMESTIC or INTERNATIONAL
+    @Indexed
+    private String type;
     
     // Embedded location document
     private Location location;

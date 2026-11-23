@@ -10,7 +10,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: Partial<User> & { password?: string; name?: string; phone?: string; dateOfBirth?: string; gender?: string; address?: string }) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   clearAsyncStorage: () => void;
   requireAuth: () => boolean;
   addBooking: (booking: Booking) => void;

@@ -22,6 +22,7 @@ import { useDestinations } from '../api';
 import { DestinationCard, CategoryCard, NotificationModal, SectionEyebrow, ChatbotFAB } from '../components';
 import { FilterModal, FilterOptions } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
+import { formatDestinationPrice } from '../utils/destination';
 
 const { width } = Dimensions.get('window');
 
@@ -64,7 +65,7 @@ const HomeScreen = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<FilterOptions>({
     priceRange: { min: 0, max: 9999 },
-    countries: [],
+    locationScope: 'all',
     ratingRange: { min: 0, max: 5 },
     category: null,
   });
@@ -428,7 +429,7 @@ const HomeScreen = () => {
                               {(destination.rating || 4.8).toFixed(1)}
                             </Text>
                           </View>
-                          <Text style={styles.popularPrice}>${destination.price}</Text>
+                          <Text style={styles.popularPrice}>{formatDestinationPrice(destination)}</Text>
                         </View>
                       </View>
                     </TouchableOpacity>
