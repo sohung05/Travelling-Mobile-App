@@ -102,9 +102,17 @@ const ProfileScreen = () => {
     },
   ];
 
+  const goToLogin = () => {
+    const rootNavigation = navigation.getParent() ?? navigation;
+    rootNavigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' as never }],
+    });
+  };
+
   const handleLogout = () => {
     if (isGuest) {
-      navigation.navigate('Login');
+      goToLogin();
       return;
     }
     
@@ -116,9 +124,14 @@ const ProfileScreen = () => {
         { 
           text: 'Đăng xuất', 
           style: 'destructive',
-          onPress: () => {
-            logout();
-            navigation.replace('Login');
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              console.error('❌ Logout failed:', error);
+            } finally {
+              goToLogin();
+            }
           }
         },
       ]
@@ -126,7 +139,7 @@ const ProfileScreen = () => {
   };
   
   const handleLogin = () => {
-    navigation.navigate('Login');
+    goToLogin();
   };
 
   if (loading) {

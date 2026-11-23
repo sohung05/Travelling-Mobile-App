@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { Destination } from '../types';
+import { formatDestinationPrice, getDestinationRating, getDestinationReviewCount } from '../utils/destination';
 
 interface DestinationCardProps {
   destination: Destination;
@@ -87,14 +88,14 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
             {/* Rating */}
             <View style={styles.ratingContainer}>
               <Ionicons name="star" size={13} color={COLORS.rating} />
-              <Text style={styles.rating}>{(destination.rating || 4.8).toFixed(1)}</Text>
-              <Text style={styles.reviews}>({destination.reviews ? `${destination.reviews}+` : '4k+'})</Text>
+              <Text style={styles.rating}>{getDestinationRating(destination).toFixed(1)}</Text>
+              <Text style={styles.reviews}>({getDestinationReviewCount(destination)})</Text>
             </View>
 
             {/* Price */}
             <View style={styles.priceContainer}>
-              <Text style={styles.priceLabel}>From</Text>
-              <Text style={styles.price}>${destination.price}</Text>
+              <Text style={styles.priceLabel}>Giá từ</Text>
+              <Text style={styles.price}>{formatDestinationPrice(destination)}</Text>
             </View>
           </View>
         </View>

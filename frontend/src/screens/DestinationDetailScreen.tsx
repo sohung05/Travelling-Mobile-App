@@ -27,6 +27,14 @@ import { RootStackParamList, Destination, Review } from '../types';
 import { userService, destinationService, reviewService, useReviewsByDestination } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { GOOGLE_MAPS_API_KEY } from '../api/config';
+import {
+  formatDestinationPrice,
+  getDestinationLocationText,
+  getDestinationPrice,
+  getDestinationRating,
+  getDestinationReviewCount,
+  getDestinationTypeLabel,
+} from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'DestinationDetail'>;
@@ -63,11 +71,12 @@ const DestinationDetailScreen = () => {
 
   // Fixed visited count (cố định, không đổi)
   const visitedCount = useMemo(() => {
-    const reviewCount = (destination.reviews || 0) + userReviews.filter(
+    const baseReviewCount = getDestinationReviewCount(destination);
+    const userReviewCount = userReviews.filter(
       review => review.destinationId === destination.id
     ).length;
-    return reviewCount * 3 + 1000; // Fixed calculation
-  }, [destination.id, destination.reviews, userReviews.length]);
+    return (baseReviewCount + userReviewCount) * 3 + 1000; // Fixed calculation
+  }, [destination.id, destination.reviews, (destination as any).reviewCount, userReviews]);
 
   // Fetch fresh destination data from server
   const refreshDestination = async () => {
@@ -112,22 +121,23 @@ const DestinationDetailScreen = () => {
     const destinationReviews = userReviews.filter(review => 
       review.destinationId === destination.id
     );
-    
+    const baseRating = getDestinationRating(destination);
+    const baseReviews = getDestinationReviewCount(destination);
+
     if (destinationReviews.length === 0) {
-      return destination.rating || 0;
+      return baseRating;
     }
     
-    const totalRating = destinationReviews.reduce((sum, review) => sum + review.rating, 0);
-    const averageRating = totalRating / destinationReviews.length;
+    const totalUserRating = destinationReviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+    const averageUserRating = totalUserRating / destinationReviews.length;
     
-    if (!destination.rating || !destination.reviews) {
-      return Math.round(averageRating * 10) / 10;
+    if (!baseRating || !baseReviews) {
+      return Math.round(averageUserRating * 10) / 10;
     }
     
-    const originalTotalRating = destination.rating * destination.reviews;
-    const newTotalRating = totalRating;
-    const totalReviews = destination.reviews + destinationReviews.length;
-    const combinedRating = (originalTotalRating + newTotalRating) / totalReviews;
+    const originalTotalRating = baseRating * baseReviews;
+    const totalReviews = baseReviews + destinationReviews.length;
+    const combinedRating = (originalTotalRating + totalUserRating) / totalReviews;
     
     return Math.round(combinedRating * 10) / 10;
   };
@@ -136,7 +146,7 @@ const DestinationDetailScreen = () => {
     const destinationReviews = userReviews.filter(review => 
       review.destinationId === destination.id
     );
-    return (destination.reviews || 0) + destinationReviews.length;
+    return getDestinationReviewCount(destination) + destinationReviews.length;
   };
 
   const handleFavoritePress = async () => {
@@ -201,6 +211,13 @@ const DestinationDetailScreen = () => {
     />
   );
 
+  const scrollToImage = (index: number) => {
+    if (images.length <= 1) return;
+    const nextIndex = (index + images.length) % images.length;
+    imageScrollRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    setCurrentImageIndex(nextIndex);
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Hôm nay';
     const date = new Date(dateString);
@@ -253,29 +270,41 @@ const DestinationDetailScreen = () => {
   });
 
   // Get amenities for "Bao gồm" section
-  const includedServices = destination.amenities || [];
+  const includedServices = Array.isArray(destination.amenities) ? destination.amenities : [];
   const defaultServices = [
     { icon: 'airplane-outline', label: 'Chuyến bay' },
     { icon: 'bed-outline', label: 'Khách sạn' },
     { icon: 'car-outline', label: 'Di chuyển' },
   ];
 
-  const servicesToShow = includedServices.length > 0 
-    ? includedServices.map((amenity, index) => {
-        const iconMap: { [key: string]: string } = {
-          'WiFi': 'wifi-outline',
-          'Breakfast': 'restaurant-outline',
-          'Airport Transfer': 'airplane-outline',
-          'Guide': 'person-outline',
-          'Hotel': 'bed-outline',
-          'Transport': 'car-outline',
-        };
-        return {
-          icon: iconMap[amenity] || 'checkmark-circle-outline',
-          label: amenity,
-        };
-      })
+  const iconMap: { [key: string]: string } = {
+    'wifi': 'wifi-outline',
+    'breakfast': 'restaurant-outline',
+    'airport transfer': 'airplane-outline',
+    'flights': 'airplane-outline',
+    'flight': 'airplane-outline',
+    'transportation': 'car-outline',
+    'transport': 'car-outline',
+    'guide': 'person-outline',
+    'tour guide': 'person-outline',
+    'hotel': 'bed-outline',
+  };
+
+  const servicesToShow = includedServices.length > 0
+    ? includedServices.map((amenity) => ({
+        icon: iconMap[String(amenity).trim().toLowerCase()] || 'checkmark-circle-outline',
+        label: String(amenity),
+      }))
     : defaultServices;
+
+  const highlights = Array.isArray(destination.highlights) ? destination.highlights : [];
+  const typeLabel = getDestinationTypeLabel(destination);
+  const locationDetails = getDestinationLocationText(destination);
+  const displayPrice = formatDestinationPrice(destination);
+  const mapSubtitle =
+    destination.location?.address ||
+    locationDetails ||
+    'Xem vị trí điểm đến trên bản đồ';
 
 
   return (
@@ -358,12 +387,47 @@ const DestinationDetailScreen = () => {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          getItemLayout={(_, index) => ({
+            length: width,
+            offset: width * index,
+            index,
+          })}
+          onScrollToIndexFailed={(info) => {
+            imageScrollRef.current?.scrollToOffset({
+              offset: info.index * width,
+              animated: true,
+            });
+          }}
           onMomentumScrollEnd={(event) => {
             const index = Math.round(event.nativeEvent.contentOffset.x / width);
             setCurrentImageIndex(index);
           }}
           scrollEnabled={images.length > 1}
         />
+
+        {/* Image navigation buttons */}
+        {images.length > 1 && (
+          <>
+            <TouchableOpacity
+              style={[styles.imageNavButton, styles.imageNavLeft]}
+              onPress={() => scrollToImage(currentImageIndex - 1)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Xem hình trước"
+            >
+              <Ionicons name="chevron-back" size={22} color={COLORS.ink} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.imageNavButton, styles.imageNavRight]}
+              onPress={() => scrollToImage(currentImageIndex + 1)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Xem hình tiếp theo"
+            >
+              <Ionicons name="chevron-forward" size={22} color={COLORS.ink} />
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* Pagination Dots */}
         {images.length > 1 && (
@@ -406,8 +470,13 @@ const DestinationDetailScreen = () => {
             <Text style={styles.title}>{destination.name}</Text>
             <View style={styles.locationRow}>
               <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
-              <Text style={styles.locationText}>{destination.country.toUpperCase()}</Text>
+              <Text style={styles.locationText}>
+                {(destination.location?.city || destination.country || '').toUpperCase()}
+              </Text>
             </View>
+            {!!locationDetails && locationDetails !== destination.country && (
+              <Text style={styles.locationDetailText}>{locationDetails}</Text>
+            )}
           </View>
 
         {/* Statistics Row - All in one line */}
@@ -427,9 +496,54 @@ const DestinationDetailScreen = () => {
           </View>
         </View>
 
+        {/* Quick Info */}
+        <View style={styles.section}>
+          <SectionEyebrow title="Thông tin chuyến đi" style={{ paddingHorizontal: 0 }} />
+          <View style={styles.infoGrid}>
+            {!!typeLabel && (
+              <View style={styles.infoChip}>
+                <Ionicons name="globe-outline" size={16} color={COLORS.primary} />
+                <View style={styles.infoChipContent}>
+                  <Text style={styles.infoChipLabel}>Phạm vi</Text>
+                  <Text style={styles.infoChipValue}>{typeLabel}</Text>
+                </View>
+              </View>
+            )}
+            {!!destination.category && (
+              <View style={styles.infoChip}>
+                <Ionicons name="pricetag-outline" size={16} color={COLORS.primary} />
+                <View style={styles.infoChipContent}>
+                  <Text style={styles.infoChipLabel}>Danh mục</Text>
+                  <Text style={styles.infoChipValue}>{String(destination.category)}</Text>
+                </View>
+              </View>
+            )}
+            {!!destination.duration && (
+              <View style={styles.infoChip}>
+                <Ionicons name="time-outline" size={16} color={COLORS.primary} />
+                <View style={styles.infoChipContent}>
+                  <Text style={styles.infoChipLabel}>Thời lượng</Text>
+                  <Text style={styles.infoChipValue}>{destination.duration}</Text>
+                </View>
+              </View>
+            )}
+            <View style={styles.infoChip}>
+              <Ionicons name="cash-outline" size={16} color={COLORS.primary} />
+              <View style={styles.infoChipContent}>
+                <Text style={styles.infoChipLabel}>Giá từ</Text>
+                <Text style={styles.infoChipValue}>{displayPrice}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Description */}
         <View style={styles.section}>
           <SectionEyebrow title="Mô tả điểm đến" style={{ paddingHorizontal: 0 }} />
+          {!!destination.shortDescription &&
+            destination.shortDescription !== destination.description && (
+              <Text style={styles.shortDescription}>{destination.shortDescription}</Text>
+            )}
           <Text
             style={styles.description}
             numberOfLines={expandedDescription ? undefined : 4}
@@ -453,6 +567,21 @@ const DestinationDetailScreen = () => {
           )}
         </View>
 
+        {/* Highlights */}
+        {highlights.length > 0 && (
+          <View style={styles.section}>
+            <SectionEyebrow title="Điểm nổi bật" style={{ paddingHorizontal: 0 }} />
+            <View style={styles.highlightsContainer}>
+              {highlights.map((item, index) => (
+                <View key={`${item}-${index}`} style={styles.highlightItem}>
+                  <Ionicons name="checkmark-circle" size={18} color={COLORS.primary} />
+                  <Text style={styles.highlightText}>{String(item)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* What's Included Section - Horizontal Pills */}
         {servicesToShow.length > 0 && (
           <View style={styles.section}>
@@ -475,6 +604,7 @@ const DestinationDetailScreen = () => {
         {/* Location/Map Section */}
         <View style={styles.section}>
           <SectionEyebrow title="Vị trí & Bản đồ" style={{ paddingHorizontal: 0 }} />
+          {!!mapSubtitle && <Text style={styles.locationSubtitle}>{mapSubtitle}</Text>}
           <View style={styles.mapContainer}>
             {(() => {
               const coords = getDestinationCoordinates(destination);
@@ -755,7 +885,7 @@ const DestinationDetailScreen = () => {
       <View style={styles.bottomBar}>
         <View style={styles.priceContainer}>
           <View style={styles.priceRow}>
-            <Text style={styles.priceValue}>${destination.price}</Text>
+            <Text style={styles.priceValue}>{displayPrice}</Text>
             <Text style={styles.priceUnit}>/ người</Text>
           </View>
           <Text style={styles.priceDisclaimer}>Bao gồm thuế & phí</Text>
@@ -856,6 +986,25 @@ const styles = StyleSheet.create({
     gap: SIZES.xs,
     zIndex: 10,
   },
+  imageNavButton: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 11,
+    ...SHADOWS.light,
+  },
+  imageNavLeft: {
+    left: SIZES.md,
+  },
+  imageNavRight: {
+    right: SIZES.md,
+  },
   dot: {
     width: 6,
     height: 6,
@@ -911,6 +1060,13 @@ const styles = StyleSheet.create({
     color: COLORS.slate,
     letterSpacing: 0.5,
   },
+  locationDetailText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body3,
+    color: COLORS.textSecondary,
+    marginTop: 6,
+    lineHeight: 20,
+  },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -949,6 +1105,60 @@ const styles = StyleSheet.create({
     fontSize: SIZES.h4,
     color: COLORS.ink,
     marginBottom: SIZES.md,
+  },
+  shortDescription: {
+    ...FONTS.medium,
+    fontSize: SIZES.body2,
+    color: COLORS.ink,
+    lineHeight: 22,
+    marginBottom: SIZES.sm,
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SIZES.sm,
+  },
+  infoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SIZES.sm,
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusMd,
+    borderWidth: 1,
+    borderColor: '#D1EAE6',
+    backgroundColor: '#F3FBFA',
+    minWidth: '47%',
+    flexGrow: 1,
+  },
+  infoChipContent: {
+    flex: 1,
+  },
+  infoChipLabel: {
+    ...FONTS.regular,
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  infoChipValue: {
+    ...FONTS.semiBold,
+    fontSize: SIZES.body3,
+    color: COLORS.ink,
+  },
+  highlightsContainer: {
+    gap: SIZES.sm,
+  },
+  highlightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SIZES.sm,
+  },
+  highlightText: {
+    ...FONTS.regular,
+    fontSize: SIZES.body2,
+    color: COLORS.ink,
+    lineHeight: 22,
+    flex: 1,
   },
   description: {
     ...FONTS.regular,

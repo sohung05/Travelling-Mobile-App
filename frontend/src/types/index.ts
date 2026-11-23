@@ -1,24 +1,35 @@
 // Type definitions for Travelling App
 
+export interface DestinationLocation {
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  city?: string;
+  country?: string;
+}
+
 export interface Destination {
   id: string;
   name: string;
   country: string;
+  type?: 'DOMESTIC' | 'INTERNATIONAL';
   description: string;
-  shortDescription: string;
-  imageUrl: string;
+  shortDescription?: string;
+  imageUrl?: string;
   images: string[];
   rating: number;
-  reviews: number;
-  price: number;
-  duration: string;
-  category: DestinationCategory;
-  featured: boolean;
-  popular: boolean;
+  reviews?: number;
+  reviewCount?: number;
+  price: number | string;
+  duration?: string;
+  category: DestinationCategory | string;
+  featured?: boolean;
+  popular?: boolean;
   latitude?: number;
   longitude?: number;
-  highlights: string[];
-  amenities: string[];
+  location?: DestinationLocation;
+  highlights?: string[];
+  amenities?: string[];
 }
 
 export type DestinationCategory = 

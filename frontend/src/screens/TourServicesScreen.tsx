@@ -22,6 +22,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination } from '../types';
 import { Header, Button, SectionEyebrow } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { formatDestinationPrice, getDestinationPrice } from '../utils/destination';
 
 type RouteProps = RouteProp<RootStackParamList, 'TourServices'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -155,8 +156,19 @@ const TourServicesScreen = () => {
     calculateTotalPrice();
   }, [selectedServices, participants]);
 
+  const formatAmount = (amount: number) => {
+    if (amount >= 100000) {
+      try {
+        return `${new Intl.NumberFormat('vi-VN').format(amount)} ₫`;
+      } catch {
+        return `${Math.round(amount).toLocaleString('vi-VN')} ₫`;
+      }
+    }
+    return `$${amount.toLocaleString('en-US')}`;
+  };
+
   const calculateTotalPrice = () => {
-    let total = destination.price * participants;
+    let total = getDestinationPrice(destination) * participants;
     selectedServices.forEach(serviceId => {
       const service = tourServices.find(s => s.id === serviceId);
       if (service) {
@@ -519,7 +531,7 @@ const TourServicesScreen = () => {
             
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>Giá tour cơ bản ({participants} khách)</Text>
-              <Text style={styles.summaryValue}>${destination.price * participants}</Text>
+              <Text style={styles.summaryValue}>{formatAmount(getDestinationPrice(destination) * participants)}</Text>
             </View>
 
             {selectedServices.map(serviceId => {
@@ -528,7 +540,7 @@ const TourServicesScreen = () => {
                 <View key={serviceId} style={styles.summaryItem}>
                   <Text style={styles.summaryLabel}>{service.name}</Text>
                   <Text style={styles.summaryValue}>
-                    {service.price === 0 ? 'Miễn phí' : `+$${service.price * participants}`}
+                    {service.price === 0 ? 'Miễn phí' : `+${formatAmount(service.price * participants)}`}
                   </Text>
                 </View>
               ) : null;
@@ -538,7 +550,7 @@ const TourServicesScreen = () => {
 
             <View style={styles.summaryTotal}>
               <Text style={styles.totalLabel}>Tổng cộng</Text>
-              <Text style={styles.totalValue}>${totalPrice}</Text>
+              <Text style={styles.totalValue}>{formatAmount(totalPrice)}</Text>
             </View>
           </View>
         </View>
@@ -548,7 +560,7 @@ const TourServicesScreen = () => {
       <View style={styles.bottomAction}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Tổng cộng</Text>
-          <Text style={styles.priceValue}>${totalPrice}</Text>
+          <Text style={styles.priceValue}>{formatAmount(totalPrice)}</Text>
         </View>
         <Button
           title="Tiếp tục"

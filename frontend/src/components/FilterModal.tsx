@@ -10,18 +10,18 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { DestinationCategory } from '../types';
+
+export type LocationScope = 'all' | 'domestic' | 'international';
 
 export interface FilterOptions {
   priceRange: {
     min: number;
     max: number;
   };
-  countries: string[];
+  locationScope: LocationScope;
   ratingRange: {
     min: number;
     max: number;
@@ -38,13 +38,6 @@ interface FilterModalProps {
 
 const { height } = Dimensions.get('window');
 
-const PRICE_RANGES = [
-  { label: 'Dưới $500', min: 0, max: 500 },
-  { label: '$500 - $1000', min: 500, max: 1000 },
-  { label: '$1000 - $2000', min: 1000, max: 2000 },
-  { label: 'Trên $2000', min: 2000, max: 9999 },
-];
-
 const RATING_RANGES = [
   { label: 'Tất cả', min: 0, max: 5 },
   { label: '3.0+', min: 3, max: 5 },
@@ -54,35 +47,18 @@ const RATING_RANGES = [
   { label: '4.8+', min: 4.8, max: 5 },
 ];
 
-const COUNTRIES = [
-  'France', 'Japan', 'Thailand', 'Italy', 'Spain', 'Greece',
-  'Vietnam', 'Indonesia', 'Malaysia', 'Singapore', 'South Korea'
+const LOCATION_SCOPE_OPTIONS: { value: LocationScope; label: string }[] = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'domestic', label: 'Trong nước' },
+  { value: 'international', label: 'Quốc tế' },
 ];
-
-const ALL_COUNTRIES = [
-  'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Australia', 'Austria',
-  'Azerbaijan', 'Bangladesh', 'Belarus', 'Belgium', 'Brazil', 'Bulgaria', 'Cambodia',
-  'Canada', 'Chile', 'China', 'Colombia', 'Croatia', 'Czech Republic', 'Denmark',
-  'Egypt', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Ghana', 'Greece',
-  'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel',
-  'Italy', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'South Korea', 'Kuwait',
-  'Latvia', 'Lebanon', 'Lithuania', 'Luxembourg', 'Malaysia', 'Mexico', 'Morocco',
-  'Netherlands', 'New Zealand', 'Nigeria', 'Norway', 'Pakistan', 'Peru', 'Philippines',
-  'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Saudi Arabia', 'Singapore',
-  'Slovakia', 'Slovenia', 'South Africa', 'Spain', 'Sri Lanka', 'Sweden', 'Switzerland',
-  'Thailand', 'Turkey', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States',
-  'Vietnam', 'Yemen', 'Zimbabwe'
-];
-
-const RATINGS = [4.5, 4.0, 3.5, 3.0];
-
 
 const CATEGORIES: DestinationCategory[] = [
   'Beach',
-  'Nature', 
+  'Nature',
   'Cultural',
   'Entertainment',
-  'Luxury'
+  'Luxury',
 ];
 
 export const FilterModal: React.FC<FilterModalProps> = ({
@@ -92,40 +68,30 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   currentFilters,
 }) => {
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
-  const [showCountryModal, setShowCountryModal] = useState(false);
-
-  const handlePriceRangeSelect = (min: number, max: number) => {
-    setFilters(prev => ({
-      ...prev,
-      priceRange: { min, max }
-    }));
-  };
 
   const handlePriceRangeChange = (values: number[]) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      priceRange: { min: values[0], max: values[1] }
+      priceRange: { min: values[0], max: values[1] },
     }));
   };
 
-  const handleCountryToggle = (country: string) => {
-    setFilters(prev => ({
+  const handleLocationScopeSelect = (scope: LocationScope) => {
+    setFilters((prev) => ({
       ...prev,
-      countries: prev.countries.includes(country)
-        ? prev.countries.filter(c => c !== country)
-        : [...prev.countries, country]
+      locationScope: scope,
     }));
   };
 
   const handleRatingSelect = (min: number, max: number) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      ratingRange: prev.ratingRange.min === min && prev.ratingRange.max === max 
-        ? { min: 0, max: 5 } 
-        : { min, max }
+      ratingRange:
+        prev.ratingRange.min === min && prev.ratingRange.max === max
+          ? { min: 0, max: 5 }
+          : { min, max },
     }));
   };
-
 
   const handleApply = () => {
     onApplyFilters(filters);
@@ -135,34 +101,21 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   const handleReset = () => {
     const resetFilters: FilterOptions = {
       priceRange: { min: 0, max: 9999 },
-      countries: [],
+      locationScope: 'all',
       ratingRange: { min: 0, max: 5 },
       category: null,
     };
     setFilters(resetFilters);
   };
 
-  const isPriceRangeSelected = (min: number, max: number) => {
-    return filters.priceRange.min === min && filters.priceRange.max === max;
-  };
-
-  const isCountrySelected = (country: string) => {
-    return filters.countries.includes(country);
-  };
-
-  const getSelectedOtherCountry = () => {
-    return filters.countries.find(country => !COUNTRIES.includes(country));
-  };
-
   const isRatingSelected = (min: number, max: number) => {
     return filters.ratingRange.min === min && filters.ratingRange.max === max;
   };
 
-
   const handleCategoryToggle = (category: DestinationCategory) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      category: prev.category === category ? null : category
+      category: prev.category === category ? null : category,
     }));
   };
 
@@ -177,11 +130,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       transparent={true}
       onRequestClose={onClose}
     >
-      <Pressable 
-        style={styles.overlay}
-        onPress={onClose}
-      >
-        <Pressable 
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable
           style={styles.modalContainer}
           onPress={(e) => e.stopPropagation()}
         >
@@ -246,15 +196,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 <TouchableOpacity
                   style={[
                     styles.optionButton,
-                    !filters.category && styles.selectedOption
+                    !filters.category && styles.selectedOption,
                   ]}
-                  onPress={() => setFilters(prev => ({ ...prev, category: null }))}
+                  onPress={() => setFilters((prev) => ({ ...prev, category: null }))}
                   activeOpacity={0.7}
                 >
-                  <Text style={[
-                    styles.optionText,
-                    !filters.category && styles.selectedOptionText
-                  ]}>
+                  <Text
+                    style={[
+                      styles.optionText,
+                      !filters.category && styles.selectedOptionText,
+                    ]}
+                  >
                     Tất cả
                   </Text>
                 </TouchableOpacity>
@@ -263,15 +215,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     key={index}
                     style={[
                       styles.optionButton,
-                      isCategorySelected(category) && styles.selectedOption
+                      isCategorySelected(category) && styles.selectedOption,
                     ]}
                     onPress={() => handleCategoryToggle(category)}
                     activeOpacity={0.7}
                   >
-                    <Text style={[
-                      styles.optionText,
-                      isCategorySelected(category) && styles.selectedOptionText
-                    ]}>
+                    <Text
+                      style={[
+                        styles.optionText,
+                        isCategorySelected(category) && styles.selectedOptionText,
+                      ]}
+                    >
                       {category}
                     </Text>
                   </TouchableOpacity>
@@ -279,17 +233,31 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               </View>
             </View>
 
-            {/* Countries */}
+            {/* Location Scope */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Quốc gia</Text>
-              <TouchableOpacity style={styles.countrySelect} onPress={() => setShowCountryModal(true)}>
-                <Text style={filters.countries.length > 0 ? styles.countrySelectText : styles.countrySelectPlaceholder}>
-                  {filters.countries.length > 0 ? filters.countries.join(', ') : 'Select country'}
-                </Text>
-                <View style={styles.countrySelectIcon}>
-                  <Text style={styles.chevronIcon}>▼</Text>
-                </View>
-              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>Khu vực</Text>
+              <View style={styles.optionsContainer}>
+                {LOCATION_SCOPE_OPTIONS.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.optionButton,
+                      filters.locationScope === option.value && styles.selectedOption,
+                    ]}
+                    onPress={() => handleLocationScopeSelect(option.value)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        filters.locationScope === option.value && styles.selectedOptionText,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             {/* Rating */}
@@ -301,17 +269,21 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     key={index}
                     style={[
                       styles.optionButton,
-                      isRatingSelected(ratingRange.min, ratingRange.max) && styles.selectedOption
+                      isRatingSelected(ratingRange.min, ratingRange.max) &&
+                        styles.selectedOption,
                     ]}
                     onPress={() => handleRatingSelect(ratingRange.min, ratingRange.max)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.ratingOption}>
                       <Ionicons name="star" size={16} color={COLORS.rating} />
-                      <Text style={[
-                        styles.optionText,
-                        isRatingSelected(ratingRange.min, ratingRange.max) && styles.selectedOptionText
-                      ]}>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          isRatingSelected(ratingRange.min, ratingRange.max) &&
+                            styles.selectedOptionText,
+                        ]}
+                      >
                         {ratingRange.label}
                       </Text>
                     </View>
@@ -319,7 +291,6 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 ))}
               </View>
             </View>
-
 
             {/* Bottom Spacing */}
             <View style={{ height: 20 }} />
@@ -343,57 +314,6 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           </View>
         </Pressable>
       </Pressable>
-
-      {/* Country Selection Modal */}
-      <Modal
-        visible={showCountryModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowCountryModal(false)}
-      >
-        <Pressable style={styles.overlay} onPress={() => setShowCountryModal(false)}>
-          <Pressable style={styles.countryModalContainer}>
-            <SafeAreaView style={styles.countryModalContent} edges={['top']}>
-              <View style={styles.countryModalHeader}>
-                <Text style={styles.countryModalTitle}>Chọn quốc gia</Text>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => setShowCountryModal(false)}
-                >
-                  <Ionicons name="close" size={24} color={COLORS.gray} />
-                </TouchableOpacity>
-              </View>
-              
-              <ScrollView style={styles.countryList} showsVerticalScrollIndicator={false}>
-                {ALL_COUNTRIES.map((country, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.countryItem,
-                      isCountrySelected(country) && styles.selectedCountryItem
-                    ]}
-                    onPress={() => {
-                      handleCountryToggle(country);
-                      setShowCountryModal(false);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.countryItemText,
-                      isCountrySelected(country) && styles.selectedCountryItemText
-                    ]}>
-                      {country}
-                    </Text>
-                    {isCountrySelected(country) && (
-                      <Ionicons name="checkmark" size={20} color={COLORS.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </SafeAreaView>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </Modal>
   );
 };
@@ -566,36 +486,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 2,
   },
-  countrySelect: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: COLORS.hairline,
-    borderRadius: SIZES.radiusXl,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: 12,
-    backgroundColor: COLORS.soft,
-  },
-  countrySelectText: {
-    ...FONTS.medium,
-    fontSize: SIZES.body2,
-    color: COLORS.ink,
-    flex: 1,
-  },
-  countrySelectPlaceholder: {
-    ...FONTS.regular,
-    fontSize: SIZES.body2,
-    color: COLORS.slate,
-    flex: 1,
-  },
-  countrySelectIcon: {
-    marginLeft: SIZES.sm,
-  },
-  chevronIcon: {
-    fontSize: 10,
-    color: COLORS.slate,
-  },
   footer: {
     flexDirection: 'row',
     paddingHorizontal: SIZES.lg,
@@ -633,54 +523,5 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     fontSize: SIZES.body1,
     color: COLORS.white,
-  },
-  // Country Modal Styles
-  countryModalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    height: height * 0.7,
-    marginTop: 'auto',
-  },
-  countryModalContent: {
-    flex: 1,
-  },
-  countryModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.hairline,
-  },
-  countryModalTitle: {
-    ...FONTS.bold,
-    fontSize: SIZES.h4,
-    color: COLORS.ink,
-  },
-  countryList: {
-    flex: 1,
-  },
-  countryItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.hairline,
-  },
-  selectedCountryItem: {
-    backgroundColor: COLORS.soft,
-  },
-  countryItemText: {
-    ...FONTS.regular,
-    fontSize: SIZES.body1,
-    color: COLORS.charcoal,
-  },
-  selectedCountryItemText: {
-    color: COLORS.primary,
-    ...FONTS.bold,
   },
 });

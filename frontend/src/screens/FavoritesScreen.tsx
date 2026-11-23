@@ -18,6 +18,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { SectionEyebrow, Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { formatDestinationPrice } from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -144,7 +145,7 @@ const FavoritesScreen = () => {
                       </View>
                       <View style={styles.priceContainer}>
                         <Text style={styles.pricePrefix}>Từ </Text>
-                        <Text style={styles.price}>${destination.price}</Text>
+                        <Text style={styles.price}>{formatDestinationPrice(destination)}</Text>
                       </View>
                     </View>
                   </View>

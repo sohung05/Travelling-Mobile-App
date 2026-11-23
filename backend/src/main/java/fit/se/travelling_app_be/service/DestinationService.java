@@ -129,6 +129,7 @@ public class DestinationService {
         
         destination.setName(destinationDetails.getName());
         destination.setCountry(destinationDetails.getCountry());
+        destination.setType(destinationDetails.getType());
         destination.setDescription(destinationDetails.getDescription());
         destination.setShortDescription(destinationDetails.getShortDescription());
         destination.setImages(destinationDetails.getImages());

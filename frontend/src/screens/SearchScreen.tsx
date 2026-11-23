@@ -21,6 +21,7 @@ import { RootStackParamList, Destination } from '../types';
 import { destinationService, userService, useDestinations } from '../api';
 import { SearchBar, Header } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { formatDestinationPrice, getDestinationPrice, getDestinationReviewCount } from '../utils/destination';
 
 const { width } = Dimensions.get('window');
 
@@ -458,12 +459,15 @@ const SearchScreen = () => {
                     </View>
                     <View style={styles.listCardRatingRow}>
                       <View style={styles.listCardRating}>
-                        {renderStars(destination.rating || 4.8)}
+                        {renderStars(destination.rating || 0)}
                       </View>
                       <Text style={styles.listCardReviewsText}>
-                        {destination.reviews || 100} reviews
+                        {getDestinationReviewCount(destination)} đánh giá
                       </Text>
                     </View>
+                    <Text style={styles.listCardReviewsText}>
+                      {formatDestinationPrice(destination)}
+                    </Text>
                     {destination.duration && (
                       <View style={styles.listCardDurationTag}>
                         <Text style={styles.listCardDurationText}>

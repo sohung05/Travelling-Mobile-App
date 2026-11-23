@@ -3,18 +3,53 @@ import { HttpClient, API_CONFIG } from './config';
 import { mockDestinations } from './mockData';
 
 class DestinationService {
+  private normalizeDestination(d: any): Destination {
+    const rawImages = Array.isArray(d?.images) ? d.images.filter(Boolean) : [];
+    const imageUrl = d?.imageUrl || rawImages[0] || '';
+    const images = imageUrl
+      ? [imageUrl, ...rawImages.filter((img: string) => img && img !== imageUrl)]
+      : rawImages;
+    const rawPrice = d?.price;
+    const parsedPrice =
+      typeof rawPrice === 'number'
+        ? rawPrice
+        : typeof rawPrice === 'string'
+          ? Number(rawPrice.replace(/[^\d.-]/g, ''))
+          : Number(rawPrice);
+    const price = Number.isFinite(parsedPrice) ? parsedPrice : (rawPrice ?? 0);
+
+    return {
+      ...d,
+      id: String(d?.id ?? d?._id ?? ''),
+      name: d?.name ?? '',
+      country: d?.country ?? d?.location?.country ?? '',
+      description: d?.description ?? '',
+      shortDescription: d?.shortDescription ?? '',
+      imageUrl,
+      images,
+      rating: typeof d?.rating === 'number' ? d.rating : Number(d?.rating) || 0,
+      reviews: typeof d?.reviews === 'number' ? d.reviews : (typeof d?.reviewCount === 'number' ? d.reviewCount : Number(d?.reviewCount) || 0),
+      reviewCount: typeof d?.reviewCount === 'number' ? d.reviewCount : (typeof d?.reviews === 'number' ? d.reviews : Number(d?.reviews) || 0),
+      price,
+      duration: d?.duration ?? '',
+      category: d?.category ?? 'Cultural',
+      featured: !!d?.featured,
+      popular: !!d?.popular,
+      latitude: d?.latitude ?? d?.location?.latitude,
+      longitude: d?.longitude ?? d?.location?.longitude,
+      location: d?.location ?? undefined,
+      highlights: Array.isArray(d?.highlights) ? d.highlights : [],
+      amenities: Array.isArray(d?.amenities) ? d.amenities : [],
+      type: d?.type,
+    } as Destination;
+  }
   async getAllDestinations(): Promise<Destination[]> {
     try {
       const result = await HttpClient.get<any[]>(API_CONFIG.ENDPOINTS.DESTINATIONS);
       console.log(`✅ Backend API success: ${result.length} destinations`);
       
       // Transform backend response to frontend format
-      const transformedDestinations: Destination[] = result.map((d: any) => ({
-        ...d,
-        latitude: d.latitude ?? d.location?.latitude,
-        longitude: d.longitude ?? d.location?.longitude,
-        reviews: d.reviews ?? d.reviewCount ?? 0,
-      }));
+      const transformedDestinations: Destination[] = result.map((d: any) => this.normalizeDestination(d));
       
       // Deduplicate by ID to avoid duplicate keys in React
       const destinationsMap = new Map<string, Destination>();
@@ -42,6 +77,10 @@ class DestinationService {
       })));
       return destinations;
     } catch (error) {
+      console.error('❌ Failed to fetch destinations from backend API:', error);
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        throw error;
+      }
       console.log('🔄 Using fallback mock data for destinations');
       console.log(`📊 Mock data: ${mockDestinations.length} destinations`);
       console.log(`📊 Sample mock destinations:`, mockDestinations.slice(0, 3).map(d => ({ 
@@ -51,7 +90,7 @@ class DestinationService {
       })));
       // Deduplicate mock data too
       const mockMap = new Map<string, Destination>();
-      mockDestinations.forEach(dest => {
+      mockDestinations.map((d) => this.normalizeDestination(d)).forEach(dest => {
         if (dest.id && !mockMap.has(dest.id)) {
           mockMap.set(dest.id, dest);
         }
@@ -63,53 +102,42 @@ class DestinationService {
   async getFeaturedDestinations(): Promise<Destination[]> {
     try {
       const result = await HttpClient.get<any[]>(API_CONFIG.ENDPOINTS.DESTINATIONS_FEATURED);
-      // Transform backend response
-      return result.map((d: any) => ({
-        ...d,
-        latitude: d.latitude ?? d.location?.latitude,
-        longitude: d.longitude ?? d.location?.longitude,
-        reviews: d.reviews ?? d.reviewCount ?? 0,
-      }));
+      return result.map((d: any) => this.normalizeDestination(d));
     } catch (error) {
+      console.error('❌ Failed to fetch featured destinations from backend API:', error);
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        throw error;
+      }
       console.log('🔄 Using fallback mock data for featured destinations');
-      return mockDestinations.filter(dest => dest.rating >= 4.8).slice(0, 5);
+      return mockDestinations.map((d) => this.normalizeDestination(d)).filter(dest => (dest.rating || 0) >= 4.8).slice(0, 5);
     }
   }
 
   async getPopularDestinations(): Promise<Destination[]> {
     try {
       const result = await HttpClient.get<any[]>(API_CONFIG.ENDPOINTS.DESTINATIONS_POPULAR);
-      // Transform backend response
-      return result.map((d: any) => ({
-        ...d,
-        latitude: d.latitude ?? d.location?.latitude,
-        longitude: d.longitude ?? d.location?.longitude,
-        reviews: d.reviews ?? d.reviewCount ?? 0,
-      }));
+      return result.map((d: any) => this.normalizeDestination(d));
     } catch (error) {
+      console.error('❌ Failed to fetch popular destinations from backend API:', error);
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        throw error;
+      }
       console.log('🔄 Using fallback mock data for popular destinations');
-      return mockDestinations.filter(dest => dest.rating >= 4.6).slice(0, 8);
+      return mockDestinations.map((d) => this.normalizeDestination(d)).filter(dest => (dest.rating || 0) >= 4.6).slice(0, 8);
     }
   }
 
   async getDestinationById(id: string): Promise<Destination | undefined> {
     try {
       const response = await HttpClient.get<any>(`${API_CONFIG.ENDPOINTS.DESTINATIONS}/${id}`);
-      
-      // Transform backend response to frontend format
-      // Backend returns location as object {latitude, longitude}, frontend expects direct properties
-      const destination: Destination = {
-        ...response,
-        latitude: response.latitude ?? response.location?.latitude,
-        longitude: response.longitude ?? response.location?.longitude,
-        reviews: response.reviews ?? response.reviewCount ?? 0,
-      };
-      
-      return destination;
+      return this.normalizeDestination(response);
     } catch (error) {
-      console.error('Failed to get destination:', error);
-      // Fallback to mock data
-      return mockDestinations.find(d => d.id === id);
+      console.error('❌ Failed to get destination from backend API:', error);
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        throw error;
+      }
+      const found = mockDestinations.find(d => d.id === id);
+      return found ? this.normalizeDestination(found) : undefined;
     }
   }
 
@@ -121,7 +149,8 @@ class DestinationService {
     try {
       // Use backend search endpoint
       if (filters.searchQuery) {
-        return HttpClient.get<Destination[]>(`${API_CONFIG.ENDPOINTS.DESTINATIONS_SEARCH}?query=${encodeURIComponent(filters.searchQuery)}`);
+        const result = await HttpClient.get<any[]>(`${API_CONFIG.ENDPOINTS.DESTINATIONS_SEARCH}?query=${encodeURIComponent(filters.searchQuery)}`);
+        return (result || []).map((d: any) => this.normalizeDestination(d));
       }
 
       // If no search query, get all destinations and filter client-side for complex filters
@@ -133,13 +162,14 @@ class DestinationService {
       }
 
       if (filters.priceRange) {
-        results = results.filter(
-          dest => dest.price >= filters.priceRange!.min && dest.price <= filters.priceRange!.max
-        );
+        results = results.filter((dest) => {
+          const price = typeof dest.price === 'number' ? dest.price : Number(String(dest.price ?? '').replace(/[^\d.-]/g, '')) || 0;
+          return price >= filters.priceRange!.min && price <= filters.priceRange!.max;
+        });
       }
 
       if (filters.rating) {
-        results = results.filter(dest => dest.rating >= filters.rating!);
+        results = results.filter(dest => (dest.rating || 0) >= filters.rating!);
       }
 
       if (filters.duration) {
