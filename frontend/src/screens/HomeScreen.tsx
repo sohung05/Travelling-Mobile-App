@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { CHATBOT_ASSETS, PLACEHOLDER_IMAGES } from '../constants/images';
+import { getCategoryName } from '../constants/categories';
 import { Destination, DestinationCategory } from '../types';
 import { useDestinations } from '../api';
 import { DestinationCard, CategoryCard, NotificationModal, SectionEyebrow, ChatbotFAB } from '../components';
@@ -380,8 +381,8 @@ const HomeScreen = () => {
         {selectedCategory && (
           <View style={styles.section}>
             <SectionEyebrow
-              title={`Popular in ${selectedCategory}`}
-              actionText="Reset filter"
+              title={`Phổ biến - ${getCategoryName(selectedCategory)}`}
+              actionText="Xóa bộ lọc"
               onActionPress={() => setSelectedCategory(null)}
             />
             <View style={styles.gridContainer}>

@@ -9,19 +9,19 @@ import { reviewService, CreateReviewRequest, UpdateReviewRequest } from '../revi
 
 /**
  * Hook để lấy reviews by destination ID
- * Cache: 5 phút (reviews có thể thay đổi thường xuyên)
+ * Cache: 1 phút, refetch khi mount để luôn đồng bộ dữ liệu mới nhất
  */
 export const useReviewsByDestination = (destinationId: string | undefined) => {
   return useQuery<Review[]>({
     queryKey: ['reviews', 'destination', destinationId],
     queryFn: async () => {
       if (!destinationId) return [];
-      // Giữ nguyên logic hiện tại của reviewService
       return await reviewService.getReviewsByDestination(destinationId);
     },
     enabled: !!destinationId, // Chỉ fetch khi có destinationId
-    staleTime: 5 * 60 * 1000, // 5 phút
-    gcTime: 10 * 60 * 1000,    // 10 phút cache time
+    staleTime: 60 * 1000, // 1 phút
+    gcTime: 5 * 60 * 1000, // 5 phút cache time
+    refetchOnMount: true, // Refetch when component mounts
   });
 };
 

@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS, getCategoryName } from '../constants';
 import { SectionEyebrow } from '../components';
 
 // Map rendering: Use WebView for all platforms (web, Android, iOS)
@@ -514,7 +514,7 @@ const DestinationDetailScreen = () => {
                 <Ionicons name="pricetag-outline" size={16} color={COLORS.primary} />
                 <View style={styles.infoChipContent}>
                   <Text style={styles.infoChipLabel}>Danh mục</Text>
-                  <Text style={styles.infoChipValue}>{String(destination.category)}</Text>
+                  <Text style={styles.infoChipValue}>{getCategoryName(destination.category)}</Text>
                 </View>
               </View>
             )}

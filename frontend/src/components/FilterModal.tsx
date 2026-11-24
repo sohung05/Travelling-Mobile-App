@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS, CATEGORY_NAMES } from '../constants';
 import { DestinationCategory } from '../types';
 
 export type LocationScope = 'all' | 'domestic' | 'international';
@@ -226,7 +226,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                         isCategorySelected(category) && styles.selectedOptionText,
                       ]}
                     >
-                      {category}
+                      {CATEGORY_NAMES[category] || category}
                     </Text>
                   </TouchableOpacity>
                 ))}
