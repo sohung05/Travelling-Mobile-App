@@ -49,23 +49,38 @@ class AuthService {
     }
 
     try {
-      const response = await HttpClient.post<any>(API_CONFIG.ENDPOINTS.LOGIN, credentials);
+      const payload = {
+        ...credentials,
+        email: (credentials.email || '')
+          .trim()
+          .replace(/\[([^\]]+)\]\(mailto:[^)]+\)/gi, '$1')
+          .replace(/^mailto:/i, ''),
+      };
+      const response = await HttpClient.post<any>(API_CONFIG.ENDPOINTS.LOGIN, payload);
+      const rawUser = response?.user || {};
+      const normalizedUser: User = {
+        ...rawUser,
+        id: rawUser.id || rawUser._id || '',
+        name: rawUser.name || rawUser.fullName || rawUser.username || 'User',
+        email: rawUser.email || payload.email,
+        favorites: Array.isArray(rawUser.favorites) ? rawUser.favorites : [],
+        bookings: Array.isArray(rawUser.bookings) ? rawUser.bookings : [],
+        createdAt: rawUser.createdAt || new Date().toISOString(),
+      };
+
+      const normalizedResponse: AuthResponse = {
+        ...response,
+        user: normalizedUser,
+      };
       
       // Store token for future requests
-      if (response.token) {
-        await AsyncStorage.setItem('auth_token', response.token);
-        await AsyncStorage.setItem('user_id', response.user.id);
-        await AsyncStorage.setItem('user_data', JSON.stringify(response.user));
+      if (normalizedResponse.token) {
+        await AsyncStorage.setItem('auth_token', normalizedResponse.token);
+        await AsyncStorage.setItem('user_id', normalizedResponse.user.id);
+        await AsyncStorage.setItem('user_data', JSON.stringify(normalizedResponse.user));
       }
       
-      // Map fullName to name if it exists
-      return {
-        ...response,
-        user: {
-          ...response.user,
-          name: response.user.name || response.user.fullName || 'User',
-        },
-      };
+      return normalizedResponse;
     } catch (error) {
       if (isAdminAccount && credentials.password === 'admin12345') {
         const mockResponse: AuthResponse = {

@@ -31,14 +31,20 @@ public class UserService {
      * Note: Cache User object directly (not Optional) to avoid LinkedHashMap deserialization issue
      */
     public Optional<User> findByEmail(String email) {
+        if (email == null) return Optional.empty();
+        String trimmed = email.trim();
         // Get from cache first (cache User directly, not Optional)
-        User cached = getUserByEmailCached(email);
+        User cached = getUserByEmailCached(trimmed);
         if (cached != null) {
             return Optional.of(cached);
         }
         
         // If not in cache, get from repository
-        return userRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmail(trimmed);
+        if (user.isEmpty()) {
+            user = userRepository.findByEmailIgnoreCase(trimmed);
+        }
+        return user;
     }
     
     /**
