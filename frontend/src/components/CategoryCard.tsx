@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS, CATEGORY_NAMES } from '../constants';
 import { DestinationCategory } from '../types';
 
 interface CategoryCardProps {
@@ -16,14 +16,6 @@ interface CategoryCardProps {
   isSelected?: boolean;
   index?: number;
 }
-
-const CATEGORY_NAMES: Record<DestinationCategory, string> = {
-  Beach: 'Beaches',
-  Nature: 'Nature',
-  Cultural: 'Culture',
-  Entertainment: 'Adventure',
-  Luxury: 'Luxury',
-};
 
 const CATEGORY_ICONS: Record<DestinationCategory, keyof typeof Ionicons.glyphMap> = {
   Beach: 'umbrella-outline',
