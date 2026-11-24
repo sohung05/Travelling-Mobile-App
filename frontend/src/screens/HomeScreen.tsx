@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { getCategoryName } from '../constants/categories';
 import { Destination, DestinationCategory } from '../types';
 import { useDestinations } from '../api';
 import { DestinationCard, CategoryCard, NotificationModal, SectionEyebrow, ChatbotFAB } from '../components';
-import { FilterModal, FilterOptions } from '../components/FilterModal';
+import { FilterModal, FilterOptions, getCategoryGroup } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDestinationPrice } from '../utils/destination';
 
@@ -65,7 +65,7 @@ const HomeScreen = () => {
   // Filter Modal state
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<FilterOptions>({
-    priceRange: { min: 0, max: 9999 },
+    priceRange: { min: 0, max: 70000000 },
     locationScope: 'all',
     ratingRange: { min: 0, max: 5 },
     category: null,
@@ -117,9 +117,13 @@ const HomeScreen = () => {
         .slice(0, 5);
       setFeaturedDestinations(featured);
 
-      // 2. Nearby destinations (Vietnam / Regional spots)
+      // 2. Nearby destinations (Vietnam / Regional spots from API)
       const nearby = allDestinations
-        .filter(dest => dest.country === 'Vietnam' || ['11', '12', '13', '3', '7'].includes(dest.id))
+        .filter(dest => {
+          if (dest.type === 'DOMESTIC') return true;
+          const country = (dest.country || '').trim().toLowerCase();
+          return country === 'vietnam' || country === 'việt nam' || country === 'viet nam';
+        })
         .slice(0, 6);
       setNearbyDestinations(nearby.length > 0 ? nearby : allDestinations.slice(0, 4));
 
@@ -174,7 +178,7 @@ const HomeScreen = () => {
     } else {
       setSelectedCategory(category);
       const filtered = allDestinations
-        .filter(dest => dest.category === category)
+        .filter(dest => getCategoryGroup(dest.category) === category || dest.category === category)
         .slice(0, 8);
       setPopularDestinations(filtered);
     }
@@ -261,9 +265,9 @@ const HomeScreen = () => {
 
         {/* Hero Title Lockup */}
         <View style={styles.heroSection}>
-          <Text style={styles.heroTitle}>Where to next?</Text>
+          <Text style={styles.heroTitle}>Điểm đến tiếp theo của bạn ?</Text>
           <View style={styles.heroSubtitleRow}>
-            <Text style={styles.heroSubtitle}>Find your next escape</Text>
+            <Text style={styles.heroSubtitle}>Tìm kiếm điểm đến yêu thích</Text>
             <Ionicons name="airplane" size={18} color={COLORS.primary} style={styles.planeIcon} />
           </View>
         </View>
@@ -277,7 +281,7 @@ const HomeScreen = () => {
           >
             <Ionicons name="search" size={18} color={COLORS.slate} style={{ marginRight: 10 }} />
             <Text style={styles.searchPlaceholder}>
-              Search destinations, cities...
+             Tìm kiếm điểm đến, thành phố....
             </Text>
           </TouchableOpacity>
 
@@ -313,8 +317,8 @@ const HomeScreen = () => {
         {/* Section 1: Trending destinations */}
         <View style={styles.section}>
           <SectionEyebrow
-            title="Trending destinations"
-            actionText="See all"
+            title="Điểm đến xu hướng"
+            actionText="Tất cả"
             onActionPress={() => navigation.navigate('MainTabs', { screen: 'Explore' })}
           />
           <ScrollView
@@ -340,8 +344,8 @@ const HomeScreen = () => {
         {/* Section 2: Explore nearby */}
         <View style={styles.section}>
           <SectionEyebrow
-            title="Explore nearby"
-            actionText="See all"
+            title="Khám phá gần đây"
+            actionText="Tất cả"
             onActionPress={() => navigation.navigate('MainTabs', { screen: 'Explore' })}
           />
           <ScrollView
@@ -461,6 +465,7 @@ const HomeScreen = () => {
         onClose={() => setShowFilterModal(false)}
         onApplyFilters={handleApplyFilters}
         currentFilters={currentFilters}
+        destinations={allDestinations}
       />
 
       {/* Floating Action Button (FAB) AI Chatbot giống hệt như ảnh thiết kế */}

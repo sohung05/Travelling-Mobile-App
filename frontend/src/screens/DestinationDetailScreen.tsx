@@ -67,16 +67,31 @@ const DestinationDetailScreen = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // Use React Query hook for reviews with caching
-  const { data: reviews = [], refetch: refetchReviews } = useReviewsByDestination(destination.id);
+  const { data: apiReviews = [], refetch: refetchReviews } = useReviewsByDestination(destination.id);
+
+  // Combine API reviews and local user reviews for this destination
+  const destinationReviews = useMemo(() => {
+    const userDestReviews = userReviews.filter(
+      (r) => r.destinationId === destination.id
+    );
+    const map = new Map<string, Review>();
+    userDestReviews.forEach((r) => {
+      if (r.id) map.set(r.id, r);
+    });
+    apiReviews.forEach((r) => {
+      if (r.id) map.set(r.id, r);
+    });
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [apiReviews, userReviews, destination.id]);
 
   // Fixed visited count (cố định, không đổi)
   const visitedCount = useMemo(() => {
     const baseReviewCount = getDestinationReviewCount(destination);
-    const userReviewCount = userReviews.filter(
-      review => review.destinationId === destination.id
-    ).length;
-    return (baseReviewCount + userReviewCount) * 3 + 1000; // Fixed calculation
-  }, [destination.id, destination.reviews, (destination as any).reviewCount, userReviews]);
+    const totalRev = Math.max(baseReviewCount, destinationReviews.length);
+    return totalRev * 3 + 1000;
+  }, [destination.id, destination.reviews, (destination as any).reviewCount, destinationReviews.length]);
 
   // Fetch fresh destination data from server
   const refreshDestination = async () => {
@@ -832,13 +847,13 @@ const DestinationDetailScreen = () => {
           <SectionEyebrow 
             title="Đánh giá từ du khách" 
             style={{ paddingHorizontal: 0 }}
-            actionText={reviews.length > 4 ? "Xem tất cả" : undefined}
+            actionText={destinationReviews.length > 4 ? "Xem tất cả" : undefined}
             onActionPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
           />
 
-          {reviews.length > 0 ? (
+          {destinationReviews.length > 0 ? (
             <View>
-              {reviews.slice(0, 4).map((review, index) => (
+              {destinationReviews.slice(0, 4).map((review, index) => (
                 <View key={review.id || index} style={styles.reviewItem}>
                   <Image
                     source={{ uri: review.userAvatar || 'https://via.placeholder.com/48' }}
@@ -858,13 +873,13 @@ const DestinationDetailScreen = () => {
                   </View>
                 </View>
               ))}
-              {reviews.length > 4 && (
+              {destinationReviews.length > 4 && (
                 <TouchableOpacity
                   style={styles.seeAllReviewsButton}
                   onPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
                 >
                   <Text style={styles.seeAllReviewsButtonText}>
-                    Xem tất cả ({reviews.length} đánh giá)
+                    Xem tất cả ({destinationReviews.length} đánh giá)
                   </Text>
                 </TouchableOpacity>
               )}
