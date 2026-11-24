@@ -52,7 +52,9 @@ const PaymentScreen = () => {
 
   // Calculate total price based on selected services (fallback method)
   const calculateTotalPrice = () => {
-    let total = destination.price;
+    let total = typeof destination.price === 'number'
+      ? destination.price
+      : Number(String(destination.price || '').replace(/[^\d.-]/g, '')) || 0;
     services.forEach(serviceId => {
       // Add service prices here if needed
       if (serviceId === '2') total += 200; // Premium package

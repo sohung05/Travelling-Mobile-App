@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 
@@ -30,6 +31,17 @@ export const Header: React.FC<HeaderProps> = ({
   style,
 }) => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+      return;
+    }
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  };
 
   return (
     <View
@@ -44,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
         {showBack ? (
           <TouchableOpacity
             style={[styles.iconButton, !transparent && styles.backButtonLight]}
-            onPress={onBackPress}
+            onPress={handleBackPress}
             activeOpacity={0.7}
           >
             <Ionicons

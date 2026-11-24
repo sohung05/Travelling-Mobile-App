@@ -1,6 +1,5 @@
 import { Destination, SearchFilters, DestinationCategory } from '../types';
 import { HttpClient, API_CONFIG } from './config';
-import { mockDestinations } from './mockData';
 
 class DestinationService {
   private normalizeDestination(d: any): Destination {
@@ -112,8 +111,8 @@ class DestinationService {
     }
   }
 
-  async getDestinationsByCategory(category: DestinationCategory): Promise<Destination[]> {
-    return HttpClient.get<Destination[]>(`${API_CONFIG.ENDPOINTS.DESTINATIONS_CATEGORY}/${category}`);
+  async getDestinationsByCategory(category: string | DestinationCategory): Promise<Destination[]> {
+    return HttpClient.get<Destination[]>(`${API_CONFIG.ENDPOINTS.DESTINATIONS_CATEGORY}/${encodeURIComponent(category)}`);
   }
 
   async searchDestinations(filters: SearchFilters): Promise<Destination[]> {

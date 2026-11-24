@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { COLORS, SIZES, FONTS, SHADOWS, CATEGORY_NAMES } from '../constants';
-import { DestinationCategory } from '../types';
+import { Destination, DestinationCategory } from '../types';
 
 export type LocationScope = 'all' | 'domestic' | 'international';
 
@@ -26,14 +26,61 @@ export interface FilterOptions {
     min: number;
     max: number;
   };
-  category: DestinationCategory | null;
+  category: string | null;
 }
+
+// Mapping từ category gốc trong MongoDB sang nhóm lọc chính
+const CATEGORY_GROUP_MAP: Record<string, string> = {
+  'Beach': 'Beach',
+  'Nature': 'Nature',
+  'Cultural': 'Cultural',
+  'Entertainment': 'Entertainment',
+  'Luxury': 'Luxury',
+  'Nature & Beach': 'Beach',
+  'Entertainment & Sightseeing': 'Entertainment',
+  'Mountain & Nature': 'Nature',
+  'Nature & Culture': 'Nature',
+  'Adventure & Nature': 'Nature',
+  'Nature & Heritage': 'Nature',
+  'Culture & Mountain': 'Cultural',
+  'Nature & Relaxation': 'Nature',
+  'Culture & Nature': 'Cultural',
+  'Spiritual & Heritage': 'Cultural',
+  'Luxury Cruise & Culture': 'Luxury',
+  'Culture & City': 'Cultural',
+  'History & Culture': 'Cultural',
+  'Culture & Scenic Tour': 'Cultural',
+  'Winter & Culture': 'Cultural',
+  'Family & Entertainment': 'Entertainment',
+  'Culture & Entertainment': 'Entertainment',
+  'Culture & Winter Activities': 'Cultural',
+  'History & River Cruise': 'Cultural',
+  'City & Coast': 'Entertainment',
+};
+
+// Map a raw MongoDB category to one of the 5 filter groups
+export const getCategoryGroup = (rawCategory: string | undefined | null): string | null => {
+  if (!rawCategory) return null;
+  // Direct lookup
+  if (CATEGORY_GROUP_MAP[rawCategory]) return CATEGORY_GROUP_MAP[rawCategory];
+  // Fallback: partial keyword matching
+  const lower = rawCategory.toLowerCase();
+  if (lower.includes('beach')) return 'Beach';
+  if (lower.includes('nature') || lower.includes('mountain') || lower.includes('adventure')) return 'Nature';
+  if (lower.includes('cultur') || lower.includes('heritage') || lower.includes('histor') || lower.includes('spiritual')) return 'Cultural';
+  if (lower.includes('entertainment') || lower.includes('city') || lower.includes('family')) return 'Entertainment';
+  if (lower.includes('luxury') || lower.includes('cruise')) return 'Luxury';
+  return null;
+};
+
+const DEFAULT_MAX_PRICE = 70000000; // 70 triệu - bao phủ hết giá trong DB
 
 interface FilterModalProps {
   visible: boolean;
   onClose: () => void;
   onApplyFilters: (filters: FilterOptions) => void;
   currentFilters: FilterOptions;
+  destinations?: Destination[]; // dữ liệu API để tính price range động
 }
 
 const { height } = Dimensions.get('window');
@@ -53,21 +100,53 @@ const LOCATION_SCOPE_OPTIONS: { value: LocationScope; label: string }[] = [
   { value: 'international', label: 'Quốc tế' },
 ];
 
-const CATEGORIES: DestinationCategory[] = [
-  'Beach',
-  'Nature',
-  'Cultural',
-  'Entertainment',
-  'Luxury',
+const FILTER_CATEGORIES: { key: string; label: string }[] = [
+  { key: 'Beach', label: 'Bãi biển' },
+  { key: 'Nature', label: 'Thiên nhiên' },
+  { key: 'Cultural', label: 'Văn hóa' },
+  { key: 'Entertainment', label: 'Giải trí' },
+  { key: 'Luxury', label: 'Sang trọng' },
 ];
+
+// Format giá hiển thị
+const formatPriceLabel = (price: number): string => {
+  if (price >= 1000000) {
+    const millions = price / 1000000;
+    return `${Number.isInteger(millions) ? millions : millions.toFixed(1)}tr ₫`;
+  }
+  if (price >= 100000) {
+    return `${new Intl.NumberFormat('vi-VN').format(price)} ₫`;
+  }
+  return `$${price.toLocaleString('en-US')}`;
+};
 
 export const FilterModal: React.FC<FilterModalProps> = ({
   visible,
   onClose,
   onApplyFilters,
   currentFilters,
+  destinations = [],
 }) => {
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
+
+  // Tính toán price range động từ dữ liệu API
+  const priceStats = useMemo(() => {
+    if (!destinations || destinations.length === 0) {
+      return { max: DEFAULT_MAX_PRICE, step: 100000 };
+    }
+    const prices = destinations
+      .map(d => {
+        const p = typeof d.price === 'number' ? d.price : Number(String(d.price ?? '').replace(/[^0-9.-]/g, ''));
+        return Number.isFinite(p) ? p : 0;
+      })
+      .filter(p => p > 0);
+    if (prices.length === 0) return { max: DEFAULT_MAX_PRICE, step: 100000 };
+    const maxPrice = Math.max(...prices);
+    // Làm tròn lên đến bội số đẹp
+    const roundedMax = Math.ceil(maxPrice / 1000000) * 1000000;
+    const step = roundedMax > 10000000 ? 500000 : (roundedMax > 1000000 ? 100000 : 50);
+    return { max: roundedMax, step };
+  }, [destinations]);
 
   const handlePriceRangeChange = (values: number[]) => {
     setFilters((prev) => ({
@@ -100,7 +179,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
   const handleReset = () => {
     const resetFilters: FilterOptions = {
-      priceRange: { min: 0, max: 9999 },
+      priceRange: { min: 0, max: priceStats.max },
       locationScope: 'all',
       ratingRange: { min: 0, max: 5 },
       category: null,
@@ -112,16 +191,26 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     return filters.ratingRange.min === min && filters.ratingRange.max === max;
   };
 
-  const handleCategoryToggle = (category: DestinationCategory) => {
+  const handleCategoryToggle = (categoryKey: string) => {
     setFilters((prev) => ({
       ...prev,
-      category: prev.category === category ? null : category,
+      category: prev.category === categoryKey ? null : categoryKey,
     }));
   };
 
-  const isCategorySelected = (category: DestinationCategory) => {
-    return filters.category === category;
+  const isCategorySelected = (categoryKey: string) => {
+    return filters.category === categoryKey;
   };
+
+  // Đếm số destination trong mỗi nhóm category
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    destinations.forEach(d => {
+      const group = getCategoryGroup(d.category);
+      if (group) counts[group] = (counts[group] || 0) + 1;
+    });
+    return counts;
+  }, [destinations]);
 
   return (
     <Modal
@@ -162,12 +251,15 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <Text style={styles.sectionTitle}>Khoảng giá</Text>
               <View style={styles.priceSliderContainer}>
                 <MultiSlider
-                  values={[filters.priceRange.min, filters.priceRange.max]}
+                  values={[
+                    Math.min(filters.priceRange.min, priceStats.max),
+                    Math.min(filters.priceRange.max, priceStats.max) || priceStats.max,
+                  ]}
                   sliderLength={320}
                   onValuesChange={handlePriceRangeChange}
                   min={0}
-                  max={7000000}
-                  step={50}
+                  max={priceStats.max}
+                  step={priceStats.step}
                   allowOverlap={false}
                   snapped
                   selectedStyle={styles.sliderSelected}
@@ -183,8 +275,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                   )}
                 />
                 <View style={styles.priceLabels}>
-                  <Text style={styles.priceLabelMin}>${filters.priceRange.min}</Text>
-                  <Text style={styles.priceLabelMax}>${filters.priceRange.max}</Text>
+                  <Text style={styles.priceLabelMin}>{formatPriceLabel(filters.priceRange.min)}</Text>
+                  <Text style={styles.priceLabelMax}>{formatPriceLabel(Math.min(filters.priceRange.max, priceStats.max) || priceStats.max)}</Text>
                 </View>
               </View>
             </View>
@@ -210,23 +302,23 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     Tất cả
                   </Text>
                 </TouchableOpacity>
-                {CATEGORIES.map((category, index) => (
+                {FILTER_CATEGORIES.map((cat) => (
                   <TouchableOpacity
-                    key={index}
+                    key={cat.key}
                     style={[
                       styles.optionButton,
-                      isCategorySelected(category) && styles.selectedOption,
+                      isCategorySelected(cat.key) && styles.selectedOption,
                     ]}
-                    onPress={() => handleCategoryToggle(category)}
+                    onPress={() => handleCategoryToggle(cat.key)}
                     activeOpacity={0.7}
                   >
                     <Text
                       style={[
                         styles.optionText,
-                        isCategorySelected(category) && styles.selectedOptionText,
+                        isCategorySelected(cat.key) && styles.selectedOptionText,
                       ]}
                     >
-                      {CATEGORY_NAMES[category] || category}
+                      {cat.label}{categoryCounts[cat.key] ? ` (${categoryCounts[cat.key]})` : ''}
                     </Text>
                   </TouchableOpacity>
                 ))}
