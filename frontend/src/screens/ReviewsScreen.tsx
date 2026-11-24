@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingHorizontal: SIZES.xl,
     paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusRound,
+    borderRadius: SIZES.radiusFull,
   },
   retryButtonText: {
     ...FONTS.semiBold,

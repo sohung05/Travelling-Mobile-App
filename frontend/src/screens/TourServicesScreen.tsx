@@ -79,7 +79,7 @@ const TourServicesScreen = () => {
   };
 
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [totalPrice, setTotalPrice] = useState(destination.price);
+  const [totalPrice, setTotalPrice] = useState<number>(getDestinationPrice(destination));
   const [departureDate, setDepartureDate] = useState<string>('');
   const [returnDate, setReturnDate] = useState<string>(''); // Auto-calculated
   const [participants, setParticipants] = useState<number>(1);

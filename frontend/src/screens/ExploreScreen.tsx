@@ -19,7 +19,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination, DestinationCategory, SearchFilters } from '../types';
 import { destinationService, userService, useDestinations } from '../api';
 import { SearchBar, Loading, FilterModal, SectionEyebrow } from '../components';
-import { FilterOptions } from '../components/FilterModal';
+import { FilterOptions, getCategoryGroup } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDestinationPrice, getDestinationPrice, getDestinationReviewCount } from '../utils/destination';
@@ -42,7 +42,7 @@ const ExploreScreen = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [currentFilters, setCurrentFilters] = useState<FilterOptions>({
-    priceRange: { min: 0, max: 7000000 },
+    priceRange: { min: 0, max: 70000000 },
     locationScope: 'all',
     ratingRange: { min: 0, max: 5 },
     category: null,
@@ -91,7 +91,7 @@ const ExploreScreen = () => {
       console.log(`🔍 Received initialFilters from route:`, route.params.initialFilters);
       const incoming = route.params.initialFilters as any;
       const normalizedFilters: FilterOptions = {
-        priceRange: incoming?.priceRange || { min: 0, max: 7000000 },
+        priceRange: incoming?.priceRange || { min: 0, max: 70000000 },
         locationScope: incoming?.locationScope || 'all',
         ratingRange: incoming?.ratingRange || { min: 0, max: 5 },
         category: incoming?.category ?? null,
@@ -132,7 +132,7 @@ const ExploreScreen = () => {
   const applyAdvancedFilters = (filters: FilterOptions) => {
     setCurrentFilters(filters);
     
-    // Sử dụng filters.category từ FilterModal
+    // Sử dụng filters.category từ FilterModal (nhóm lọc: Beach, Nature, Cultural, Entertainment, Luxury)
     const effectiveCategory = filters.category;
     
     console.log(`🔍 ApplyAdvancedFilters called with:`, {
@@ -182,49 +182,28 @@ const ExploreScreen = () => {
       );
     }
 
-    // Category filter
+    // Category filter - sử dụng getCategoryGroup để map category gốc MongoDB sang nhóm lọc
     if (effectiveCategory) {
-      console.log(`🔍 Filtering by category: ${effectiveCategory}`);
+      console.log(`🔍 Filtering by category group: ${effectiveCategory}`);
       console.log(`📊 Before category filter: ${filtered.length} destinations`);
       
-      // Debug: Show all unique categories in data
-      const uniqueCategories = [...new Set(filtered.map(dest => dest.category))];
-      console.log(`📊 Available categories in data:`, uniqueCategories);
-      
-      // Try multiple matching strategies
       filtered = filtered.filter(dest => {
-        const destCategory = dest.category?.toLowerCase() || '';
-        const selectedCategoryLower = effectiveCategory.toLowerCase();
+        const destGroup = getCategoryGroup(dest.category);
+        const isMatch = destGroup === effectiveCategory;
         
-        // Exact match
-        const exactMatch = dest.category === effectiveCategory;
-        // Case-insensitive match
-        const caseInsensitiveMatch = destCategory === selectedCategoryLower;
-        // Partial match (contains)
-        const partialMatch = destCategory.includes(selectedCategoryLower) || selectedCategoryLower.includes(destCategory);
-        
-        const isMatch = exactMatch || caseInsensitiveMatch || partialMatch;
-        
-        console.log(`🔍 Checking destination: ${dest.name}, category: "${dest.category}", selected: "${effectiveCategory}", match: ${isMatch}`);
+        console.log(`🔍 Checking destination: ${dest.name}, category: "${dest.category}", group: "${destGroup}", selected: "${effectiveCategory}", match: ${isMatch}`);
         
         return isMatch;
       });
       
       console.log(`📊 After category filter: ${filtered.length} destinations`);
-      console.log(`📊 Filtered destinations:`, filtered.slice(0, 3).map(d => ({ 
-        name: d.name, 
-        category: d.category, 
-        price: d.price,
-        images: d.images?.length || 0 
-      })));
     }
 
-    // Advanced filters - chỉ áp dụng khi có filter thực sự
+    // Advanced filters
     console.log(`📊 Before advanced filters: ${filtered.length} destinations`);
     
-    // Price filter - chỉ áp dụng khi có filter thực sự (không phải default)
-    // Default max price là 7000000, nên chỉ filter khi user thay đổi
-    if (filters.priceRange.min > 0 || (filters.priceRange.max < 7000000 && filters.priceRange.max !== 9999)) {
+    // Price filter - áp dụng khi user thay đổi range
+    if (filters.priceRange.min > 0 || filters.priceRange.max < 70000000) {
       console.log(`📊 Applying price filter: ${filters.priceRange.min} - ${filters.priceRange.max}`);
       filtered = filtered.filter(dest => {
         const price = getDestinationPrice(dest);
@@ -283,7 +262,7 @@ const ExploreScreen = () => {
   const clearAllFilters = () => {
     setSearchQuery('');
     setCurrentFilters({
-      priceRange: { min: 0, max: 7000000 },
+      priceRange: { min: 0, max: 70000000 },
       locationScope: 'all',
       ratingRange: { min: 0, max: 5 },
       category: null,
@@ -527,6 +506,7 @@ const ExploreScreen = () => {
         onClose={() => setShowFilterModal(false)}
         onApplyFilters={applyAdvancedFilters}
         currentFilters={currentFilters}
+        destinations={destinations}
       />
     </SafeAreaView>
   );
