@@ -128,10 +128,16 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    // Clear stored auth data
-    await AsyncStorage.removeItem('auth_token');
-    await AsyncStorage.removeItem('user_id');
-    await AsyncStorage.removeItem('user_data');
+    try {
+      // Clear stored auth data
+      await AsyncStorage.multiRemove(['auth_token', 'user_id', 'user_data']);
+    } catch (error) {
+      console.error('Error removing auth items in logout:', error);
+      // Fallback: remove one by one
+      try { await AsyncStorage.removeItem('auth_token'); } catch (_) {}
+      try { await AsyncStorage.removeItem('user_id'); } catch (_) {}
+      try { await AsyncStorage.removeItem('user_data'); } catch (_) {}
+    }
   }
 
   // Debug method to clear all stored data

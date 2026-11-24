@@ -8,10 +8,11 @@ import {
   Image,
   Switch,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS, SHADOWS, DEFAULT_AVATAR } from '../constants/theme';
@@ -103,11 +104,42 @@ const ProfileScreen = () => {
   ];
 
   const goToLogin = () => {
-    const rootNavigation = navigation.getParent() ?? navigation;
-    rootNavigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' as never }],
-    });
+    try {
+      let rootNavigation: any = navigation;
+      while (rootNavigation?.getParent?.()) {
+        rootNavigation = rootNavigation.getParent();
+      }
+
+      if (rootNavigation?.dispatch) {
+        rootNavigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          })
+        );
+        return;
+      }
+    } catch (e) {
+      console.warn('Reset navigation failed, falling back to navigate Login:', e);
+    }
+
+    try {
+      (navigation as any).navigate('Login');
+    } catch (e) {
+      console.error('Navigate to Login failed:', e);
+    }
+  };
+
+  const performLogout = async () => {
+    try {
+      setLoading(true);
+      await logout();
+    } catch (error) {
+      console.error('❌ Logout failed:', error);
+    } finally {
+      setLoading(false);
+      goToLogin();
+    }
   };
 
   const handleLogout = () => {
@@ -116,6 +148,18 @@ const ProfileScreen = () => {
       return;
     }
     
+    // Trên nền tảng Web, Alert.alert trong react-native-web là hàm rỗng,
+    // do đó cần dùng window.confirm để hiển thị hộp thoại xác nhận và thực thi callback.
+    if (Platform.OS === 'web') {
+      const confirmed = typeof window !== 'undefined' 
+        ? window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?') 
+        : true;
+      if (confirmed) {
+        performLogout();
+      }
+      return;
+    }
+
     Alert.alert(
       'Đăng xuất',
       'Bạn có chắc chắn muốn đăng xuất khỏi ứng dụng?',
@@ -124,15 +168,7 @@ const ProfileScreen = () => {
         { 
           text: 'Đăng xuất', 
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error) {
-              console.error('❌ Logout failed:', error);
-            } finally {
-              goToLogin();
-            }
-          }
+          onPress: performLogout,
         },
       ]
     );

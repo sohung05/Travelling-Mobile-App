@@ -3,6 +3,7 @@ import { User, Booking, Destination, Review } from '../types';
 import { authService, userService, bookingService, reviewService, notificationService } from '../api';
 import { biometricService } from '../services/biometricService';
 import { Notification } from '../api/notificationService';
+import { queryClient } from '../api/cache/queryClient';
 
 interface AuthContextType {
   user: User | null;
@@ -219,23 +220,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    await authService.logout();
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Error during authService.logout:', error);
+    }
     setUser(null);
     setUserBookings([]);
     setUserFavorites([]);
     setUserReviews([]);
+    setUserNotifications([]);
+    setUnreadNotificationCount(0);
     setPendingScreen(null); // Clear pending screen on logout
     setPendingTourBooking(null); // Clear pending tour on logout
+
+    // Clear React Query cache
+    try {
+      queryClient.clear();
+    } catch (error) {
+      console.error('Error clearing queryClient cache:', error);
+    }
   };
 
   const clearAsyncStorage = async () => {
-    await authService.clearAsyncStorage();
+    try {
+      await authService.clearAsyncStorage();
+    } catch (error) {
+      console.error('Error during clearAsyncStorage:', error);
+    }
     setUser(null);
     setUserBookings([]);
     setUserFavorites([]);
     setUserReviews([]);
+    setUserNotifications([]);
+    setUnreadNotificationCount(0);
     setPendingScreen(null); // Clear pending screen
     setPendingTourBooking(null); // Clear pending tour
+    try {
+      queryClient.clear();
+    } catch (error) {
+      console.error('Error clearing queryClient cache:', error);
+    }
   };
 
   const requireAuth = (): boolean => {
