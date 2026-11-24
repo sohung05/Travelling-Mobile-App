@@ -30,14 +30,27 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const notify = (title: string, message: string) => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert(`${title}: ${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ email và mật khẩu');
+    const cleanEmail = email
+      .trim()
+      .replace(/\[([^\]]+)\]\(mailto:[^)]+\)/gi, '$1')
+      .replace(/^mailto:/i, '');
+
+    if (!cleanEmail || !password) {
+      notify('Thông báo', 'Vui lòng nhập đầy đủ email và mật khẩu');
       return;
     }
 
     setLoading(true);
-    const success = await login(email, password);
+    const success = await login(cleanEmail, password);
     setLoading(false);
     
     if (success) {
@@ -51,7 +64,7 @@ const LoginScreen = () => {
         navigation.replace('MainTabs');
       }
     } else {
-      Alert.alert('Đăng nhập thất bại', 'Vui lòng kiểm tra lại thông tin tài khoản hoặc mật khẩu.');
+      notify('Đăng nhập thất bại', 'Vui lòng kiểm tra lại thông tin tài khoản hoặc mật khẩu.');
     }
   };
 

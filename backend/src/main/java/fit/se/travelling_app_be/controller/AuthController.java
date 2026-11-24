@@ -56,8 +56,27 @@ public class AuthController {
         
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            // Hash the input password and compare with hashed password in database
-            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            String storedPassword = user.getPassword();
+            String rawPassword = request.getPassword();
+            boolean passwordMatches = false;
+
+            try {
+                passwordMatches = storedPassword != null
+                    && passwordEncoder.matches(rawPassword, storedPassword);
+            } catch (IllegalArgumentException ex) {
+                // Stored password may be legacy/plain text; fall back to direct comparison below.
+                passwordMatches = false;
+            }
+
+            // Fallback for legacy/plain-text passwords (e.g. imported sample data)
+            if (!passwordMatches && storedPassword != null && storedPassword.equals(rawPassword)) {
+                passwordMatches = true;
+                // Migrate to hashed password for future logins
+                userService.changePassword(user.getId(), rawPassword);
+                user = userService.findById(user.getId()).orElse(user);
+            }
+
+            if (passwordMatches) {
                 AuthResponse authResponse = new AuthResponse();
                 authResponse.setToken("dummy-token"); // TODO: Implement JWT
                 authResponse.setUser(user);
