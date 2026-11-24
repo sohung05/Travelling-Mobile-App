@@ -78,24 +78,7 @@ class DestinationService {
       return destinations;
     } catch (error) {
       console.error('❌ Failed to fetch destinations from backend API:', error);
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        throw error;
-      }
-      console.log('🔄 Using fallback mock data for destinations');
-      console.log(`📊 Mock data: ${mockDestinations.length} destinations`);
-      console.log(`📊 Sample mock destinations:`, mockDestinations.slice(0, 3).map(d => ({ 
-        name: d.name, 
-        images: d.images?.length || 0, 
-        imageUrl: d.imageUrl 
-      })));
-      // Deduplicate mock data too
-      const mockMap = new Map<string, Destination>();
-      mockDestinations.map((d) => this.normalizeDestination(d)).forEach(dest => {
-        if (dest.id && !mockMap.has(dest.id)) {
-          mockMap.set(dest.id, dest);
-        }
-      });
-      return Array.from(mockMap.values());
+      throw error;
     }
   }
 
@@ -105,11 +88,7 @@ class DestinationService {
       return result.map((d: any) => this.normalizeDestination(d));
     } catch (error) {
       console.error('❌ Failed to fetch featured destinations from backend API:', error);
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        throw error;
-      }
-      console.log('🔄 Using fallback mock data for featured destinations');
-      return mockDestinations.map((d) => this.normalizeDestination(d)).filter(dest => (dest.rating || 0) >= 4.8).slice(0, 5);
+      throw error;
     }
   }
 
@@ -119,11 +98,7 @@ class DestinationService {
       return result.map((d: any) => this.normalizeDestination(d));
     } catch (error) {
       console.error('❌ Failed to fetch popular destinations from backend API:', error);
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        throw error;
-      }
-      console.log('🔄 Using fallback mock data for popular destinations');
-      return mockDestinations.map((d) => this.normalizeDestination(d)).filter(dest => (dest.rating || 0) >= 4.6).slice(0, 8);
+      throw error;
     }
   }
 
@@ -133,11 +108,7 @@ class DestinationService {
       return this.normalizeDestination(response);
     } catch (error) {
       console.error('❌ Failed to get destination from backend API:', error);
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        throw error;
-      }
-      const found = mockDestinations.find(d => d.id === id);
-      return found ? this.normalizeDestination(found) : undefined;
+      throw error;
     }
   }
 

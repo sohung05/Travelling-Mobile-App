@@ -81,6 +81,7 @@ export interface Review {
   comment: string;
   createdAt: string;
   images?: string[];
+  updatedAt?: string;
 }
 
 export interface SearchFilters {

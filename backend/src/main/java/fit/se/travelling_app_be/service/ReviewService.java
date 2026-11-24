@@ -62,7 +62,26 @@ public class ReviewService {
      */
     @Cacheable(value = "reviews", key = "'destination:' + #destinationId")
     public List<Review> getReviewsByDestinationId(String destinationId) {
-        return reviewRepository.findByDestinationIdOrderByCreatedAtDesc(destinationId);
+        if (destinationId == null || destinationId.isBlank()) {
+            return java.util.Collections.emptyList();
+        }
+        List<Review> reviews = reviewRepository.findByDestinationIdOrderByCreatedAtDesc(destinationId.trim());
+        // Populate userName and userAvatar from User if missing or empty
+        for (Review review : reviews) {
+            if ((review.getUserName() == null || review.getUserName().isBlank()
+                    || review.getUserAvatar() == null || review.getUserAvatar().isBlank())
+                    && review.getUserId() != null) {
+                userRepository.findById(review.getUserId()).ifPresent(user -> {
+                    if (review.getUserName() == null || review.getUserName().isBlank()) {
+                        review.setUserName(user.getFullName() != null ? user.getFullName() : "User");
+                    }
+                    if (review.getUserAvatar() == null || review.getUserAvatar().isBlank()) {
+                        review.setUserAvatar(user.getAvatar());
+                    }
+                });
+            }
+        }
+        return reviews;
     }
     
     /**

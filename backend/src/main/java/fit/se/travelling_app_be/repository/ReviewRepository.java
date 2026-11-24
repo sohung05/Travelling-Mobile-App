@@ -20,5 +20,6 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     @Query("{'destinationId': ?0, 'rating': {$gte: ?1}}")
     List<Review> findByDestinationIdAndRatingGreaterThanEqual(String destinationId, Integer minRating);
     
+    @Query(value = "{'destinationId': ?0}", sort = "{'createdAt': -1}")
     List<Review> findByDestinationIdOrderByCreatedAtDesc(String destinationId);
 }

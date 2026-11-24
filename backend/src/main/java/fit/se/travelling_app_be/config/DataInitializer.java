@@ -19,23 +19,8 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Only re-seed sample data if database is empty, has broken images, or missing type
-        boolean needsRefresh = false;
-        List<Destination> existing = destinationRepository.findAll();
-        if (existing.isEmpty()) {
-            needsRefresh = true;
-        } else {
-            for (Destination d : existing) {
-                if ((d.getImageUrl() != null && d.getImageUrl().contains("photo-1502602898536-47ad22581b52"))
-                        || d.getType() == null || d.getType().isBlank()) {
-                    needsRefresh = true;
-                    break;
-                }
-            }
-        }
-
-        if (needsRefresh) {
-            destinationRepository.deleteAll();
+        // Only seed sample data if database is completely empty
+        if (destinationRepository.count() == 0) {
             createSampleDestinations();
         }
     }

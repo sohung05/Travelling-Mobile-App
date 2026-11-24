@@ -17,11 +17,51 @@ export interface UpdateReviewRequest {
 
 class ReviewService {
   async getReviewsByDestination(destinationId: string): Promise<Review[]> {
-    return HttpClient.get<Review[]>(`${API_CONFIG.ENDPOINTS.REVIEWS_DESTINATION}/${destinationId}`);
+    if (!destinationId) return [];
+    try {
+      const response = await HttpClient.get<any>(`${API_CONFIG.ENDPOINTS.REVIEWS_DESTINATION}/${destinationId}`);
+      const rawList = Array.isArray(response) ? response : (Array.isArray(response?.data) ? response.data : []);
+      return rawList.map((r: any) => ({
+        ...r,
+        id: String(r?.id ?? r?._id ?? ''),
+        destinationId: String(r?.destinationId ?? destinationId),
+        userId: String(r?.userId ?? ''),
+        userName: r?.userName || 'Người dùng',
+        userAvatar: r?.userAvatar || 'https://via.placeholder.com/50',
+        rating: typeof r?.rating === 'number' ? r.rating : Number(r?.rating) || 5,
+        comment: r?.comment || '',
+        images: Array.isArray(r?.images) ? r.images : [],
+        createdAt: r?.createdAt ? (typeof r.createdAt === 'string' ? r.createdAt : (r.createdAt?.$date || new Date(r.createdAt).toISOString())) : new Date().toISOString(),
+        updatedAt: r?.updatedAt ? (typeof r.updatedAt === 'string' ? r.updatedAt : (r.updatedAt?.$date || new Date(r.updatedAt).toISOString())) : new Date().toISOString(),
+      }));
+    } catch (error) {
+      console.error(`❌ Failed to fetch reviews for destination ${destinationId}:`, error);
+      throw error;
+    }
   }
 
   async getUserReviews(userId: string): Promise<Review[]> {
-    return HttpClient.get<Review[]>(`${API_CONFIG.ENDPOINTS.REVIEWS_USER}/${userId}`);
+    if (!userId) return [];
+    try {
+      const response = await HttpClient.get<any>(`${API_CONFIG.ENDPOINTS.REVIEWS_USER}/${userId}`);
+      const rawList = Array.isArray(response) ? response : (Array.isArray(response?.data) ? response.data : []);
+      return rawList.map((r: any) => ({
+        ...r,
+        id: String(r?.id ?? r?._id ?? ''),
+        destinationId: String(r?.destinationId ?? ''),
+        userId: String(r?.userId ?? userId),
+        userName: r?.userName || 'Người dùng',
+        userAvatar: r?.userAvatar || 'https://via.placeholder.com/50',
+        rating: typeof r?.rating === 'number' ? r.rating : Number(r?.rating) || 5,
+        comment: r?.comment || '',
+        images: Array.isArray(r?.images) ? r.images : [],
+        createdAt: r?.createdAt ? (typeof r.createdAt === 'string' ? r.createdAt : (r.createdAt?.$date || new Date(r.createdAt).toISOString())) : new Date().toISOString(),
+        updatedAt: r?.updatedAt ? (typeof r.updatedAt === 'string' ? r.updatedAt : (r.updatedAt?.$date || new Date(r.updatedAt).toISOString())) : new Date().toISOString(),
+      }));
+    } catch (error) {
+      console.error(`❌ Failed to fetch user reviews for ${userId}:`, error);
+      throw error;
+    }
   }
 
   async getUserReviewForDestination(userId: string, destinationId: string): Promise<Review | null> {
