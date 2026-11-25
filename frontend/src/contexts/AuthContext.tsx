@@ -213,7 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       console.error('Registration failed:', error);
-      return false;
+      throw error;
     } finally {
       setIsLoading(false);
     }

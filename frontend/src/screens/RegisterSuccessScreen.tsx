@@ -63,7 +63,7 @@ const RegisterSuccessScreen = () => {
             onPress={handleExplore}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Let's Explore</Text>
+            <Text style={styles.buttonText}>Tiếp tục khám phá</Text>
           </TouchableOpacity>
         </View>
       </View>

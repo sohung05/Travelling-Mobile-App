@@ -45,33 +45,44 @@ const RegisterScreen = () => {
     const { name, email, phone, password, confirmPassword } = formData;
 
     if (!name || !email || !phone || !password || !confirmPassword) {
-      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ thông tin đăng ký');
+      Alert.alert('Th?ng b?o', 'Vui l?ng nh?p ??y ?? th?ng tin ??ng k?');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('L?i', 'M?t kh?u ph?i c? ?t nh?t 6 k? t?');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Lỗi', 'Mật khẩu xác nhận không khớp');
+      Alert.alert('L?i', 'M?t kh?u x?c nh?n kh?ng kh?p');
       return;
     }
 
     if (!acceptTerms) {
-      Alert.alert('Lưu ý', 'Vui lòng chấp nhận điều khoản sử dụng');
+      Alert.alert('L?u ?', 'Vui l?ng ch?p nh?n ?i?u kho?n s? d?ng');
       return;
     }
 
     setLoading(true);
-    const success = await register({
-      name,
-      email,
-      phone,
-      password,
-    });
-    setLoading(false);
-    
-    if (success) {
-      navigation.replace('RegisterSuccess');
-    } else {
-      Alert.alert('Đăng ký thất bại', 'Vui lòng kiểm tra lại thông tin và thử lại.');
+    try {
+      const success = await register({
+        name,
+        email,
+        phone,
+        password,
+      });
+
+      if (success) {
+        navigation.replace('RegisterSuccess');
+      } else {
+        Alert.alert('??ng k? th?t b?i', 'Vui l?ng ki?m tra l?i th?ng tin v? th? l?i.');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Vui l?ng ki?m tra l?i th?ng tin v? th? l?i.';
+      Alert.alert('??ng k? th?t b?i', message);
+    } finally {
+      setLoading(false);
     }
   };
 
