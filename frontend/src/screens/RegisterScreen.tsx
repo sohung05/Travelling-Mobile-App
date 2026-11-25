@@ -36,9 +36,13 @@ const RegisterScreen = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const handleRegister = async () => {
@@ -46,61 +50,51 @@ const RegisterScreen = () => {
     const email = formData.email.trim();
     const phone = formData.phone.trim();
     const { password, confirmPassword } = formData;
+    const nextErrors: Record<string, string> = {};
 
-    if (!name || !email || !phone || !password || !confirmPassword) {
-      Alert.alert('Th?ng b?o', 'Vui l?ng nh?p ??y ?? th?ng tin ??ng k?');
-      return;
-    }
+    if (!name) nextErrors.name = 'Vui lòng nhập họ và tên';
+    else if (name.length < 2) nextErrors.name = 'Họ và tên phải có ít nhất 2 ký tự';
 
-    if (name.length < 2) {
-      Alert.alert('L?i', 'H? v? t?n ph?i c? ?t nh?t 2 k? t?');
-      return;
-    }
+    if (!email) nextErrors.email = 'Vui lòng nhập email';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = 'Email không đúng định dạng';
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('L?i', 'Email kh?ng ??ng ??nh d?ng');
-      return;
-    }
+    const normalizedPhone = phone.replace(/\s/g, '');
+    if (!phone) nextErrors.phone = 'Vui lòng nhập số điện thoại';
+    else if (!/^(0|\+84)[0-9]{9,10}$/.test(normalizedPhone)) nextErrors.phone = 'Số điện thoại không hợp lệ (VD: 0912345678)';
 
-    const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
-    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
-      Alert.alert('L?i', 'S? ?i?n tho?i kh?ng h?p l? (VD: 0912345678 ho?c +84912345678)');
-      return;
-    }
+    if (!password) nextErrors.password = 'Vui lòng nhập mật khẩu';
+    else if (password.length < 6) nextErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
 
-    if (password.length < 6) {
-      Alert.alert('L?i', 'M?t kh?u ph?i c? ?t nh?t 6 k? t?');
-      return;
-    }
+    if (!confirmPassword) nextErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
+    else if (password !== confirmPassword) nextErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
 
-    if (password !== confirmPassword) {
-      Alert.alert('L?i', 'M?t kh?u x?c nh?n kh?ng kh?p');
-      return;
-    }
+    if (!acceptTerms) nextErrors.terms = 'Vui lòng chấp nhận điều khoản sử dụng';
 
-    if (!acceptTerms) {
-      Alert.alert('L?u ?', 'Vui l?ng ch?p nh?n ?i?u kho?n s? d?ng');
-      return;
-    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
     try {
       const success = await register({
         name,
         email,
-        phone: phone.replace(/\s/g, ''),
+        phone: normalizedPhone,
         password,
       });
 
       if (success) {
         navigation.replace('RegisterSuccess');
       } else {
-        Alert.alert('??ng k? th?t b?i', 'Vui l?ng ki?m tra l?i th?ng tin v? th? l?i.');
+        setErrors({ general: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin và thử lại.' });
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Vui l?ng ki?m tra l?i th?ng tin v? th? l?i.';
-      Alert.alert('??ng k? th?t b?i', message);
+      const message = error instanceof Error ? error.message : 'Đăng ký thất bại. Vui lòng thử lại.';
+      const lower = message.toLowerCase();
+      if (lower.includes('email')) setErrors({ email: message });
+      else if (lower.includes('phone') || lower.includes('số điện thoại')) setErrors({ phone: message });
+      else if (lower.includes('password') || lower.includes('mật khẩu')) setErrors({ password: message });
+      else if (lower.includes('full name') || lower.includes('họ và tên')) setErrors({ name: message });
+      else setErrors({ general: message });
     } finally {
       setLoading(false);
     }
@@ -146,10 +140,10 @@ const RegisterScreen = () => {
               </View>
             </View>
 
-            {/* Name Input */}
+                        {/* Name Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>HỌ VÀ TÊN</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, !!errors.name && styles.inputWrapperError]}>
                 <Ionicons name="person-outline" size={18} color={COLORS.slate} />
                 <TextInput
                   style={styles.input}
@@ -159,12 +153,13 @@ const RegisterScreen = () => {
                   placeholderTextColor={COLORS.slate}
                 />
               </View>
+              {!!errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
             </View>
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>EMAIL</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, !!errors.email && styles.inputWrapperError]}>
                 <Ionicons name="mail-outline" size={18} color={COLORS.slate} />
                 <TextInput
                   style={styles.input}
@@ -176,12 +171,13 @@ const RegisterScreen = () => {
                   autoCapitalize="none"
                 />
               </View>
+              {!!errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
             </View>
 
             {/* Phone Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>SỐ ĐIỆN THOẠI</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, !!errors.phone && styles.inputWrapperError]}>
                 <Ionicons name="call-outline" size={18} color={COLORS.slate} />
                 <TextInput
                   style={styles.input}
@@ -192,12 +188,13 @@ const RegisterScreen = () => {
                   keyboardType="phone-pad"
                 />
               </View>
+              {!!errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
             </View>
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>MẬT KHẨU</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, !!errors.password && styles.inputWrapperError]}>
                 <Ionicons name="lock-closed-outline" size={18} color={COLORS.slate} />
                 <TextInput
                   style={styles.input}
@@ -219,12 +216,13 @@ const RegisterScreen = () => {
                   />
                 </TouchableOpacity>
               </View>
+              {!!errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
             </View>
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>XÁC NHẬN MẬT KHẨU</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, !!errors.confirmPassword && styles.inputWrapperError]}>
                 <Ionicons name="lock-closed-outline" size={18} color={COLORS.slate} />
                 <TextInput
                   style={styles.input}
@@ -246,30 +244,39 @@ const RegisterScreen = () => {
                   />
                 </TouchableOpacity>
               </View>
+              {!!errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
             </View>
 
             {/* Terms and Conditions */}
-            <TouchableOpacity
-              style={styles.termsContainer}
-              onPress={() => setAcceptTerms(!acceptTerms)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked]}>
-                {acceptTerms && (
-                  <Ionicons name="checkmark" size={14} color={COLORS.white} />
-                )}
-              </View>
-              <View style={styles.termsTextContainer}>
-                <Text style={styles.termsText}>
-                  Tôi đồng ý với{' '}
-                  <Text style={styles.termsLink}>Điều khoản sử dụng</Text>
-                  {' '}và{' '}
-                  <Text style={styles.termsLink}>Chính sách bảo mật</Text>
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.termsSection}>
+              <TouchableOpacity
+                style={styles.termsContainer}
+                onPress={() => {
+                  setAcceptTerms(!acceptTerms);
+                  if (errors.terms) setErrors(prev => ({ ...prev, terms: '' }));
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.checkbox, acceptTerms && styles.checkboxChecked, !!errors.terms && styles.checkboxError]}>
+                  {acceptTerms && (
+                    <Ionicons name="checkmark" size={14} color={COLORS.white} />
+                  )}
+                </View>
+                <View style={styles.termsTextContainer}>
+                  <Text style={styles.termsText}>
+                    Tôi đồng ý với{' '}
+                    <Text style={styles.termsLink}>Điều khoản sử dụng</Text>
+                    {' '}và{' '}
+                    <Text style={styles.termsLink}>Chính sách bảo mật</Text>
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              {!!errors.terms && <Text style={styles.errorText}>{errors.terms}</Text>}
+            </View>
 
-            {/* Register Button (button-pill-dark from DESIGN.md) */}
+            {!!errors.general && <Text style={styles.generalErrorText}>{errors.general}</Text>}
+
+{/* Register Button (button-pill-dark from DESIGN.md) */}
             <Button
               title="Đăng ký tài khoản"
               onPress={handleRegister}
@@ -402,6 +409,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.hairline,
     gap: SIZES.sm,
   },
+  inputWrapperError: {
+    borderColor: COLORS.error || '#EF4444',
+  },
   input: {
     flex: 1,
     ...FONTS.regular,
@@ -411,10 +421,26 @@ const styles = StyleSheet.create({
   eyeButton: {
     padding: SIZES.xs,
   },
+  errorText: {
+    ...FONTS.regular,
+    fontSize: 12,
+    color: COLORS.error || '#EF4444',
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  generalErrorText: {
+    ...FONTS.regular,
+    fontSize: 13,
+    color: COLORS.error || '#EF4444',
+    marginBottom: SIZES.md,
+    textAlign: 'center',
+  },
+  termsSection: {
+    marginVertical: SIZES.lg,
+  },
   termsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: SIZES.lg,
     gap: SIZES.sm,
   },
   checkbox: {
@@ -430,6 +456,9 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
+  },
+  checkboxError: {
+    borderColor: COLORS.error || '#EF4444',
   },
   termsTextContainer: {
     flex: 1,
