@@ -39,7 +39,7 @@ public class AuthController {
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setAddress(request.getAddress());
-        user.setAvatar("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face");
+        user.setAvatar("https://i.pinimg.com/736x/af/80/37/af80374611f4673d1928a881727e13b0.jpg");
 
         User savedUser = userService.createUser(user);
 
