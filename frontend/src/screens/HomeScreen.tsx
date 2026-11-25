@@ -152,6 +152,11 @@ const HomeScreen = () => {
   };
 
   const handleFavoritePress = async (destinationId: string) => {
+    if (isGuest) {
+      navigation.navigate('Login');
+      return;
+    }
+
     try {
       const isFav = userFavorites.some(fav => fav.id === destinationId);
       if (isFav) {

@@ -24,29 +24,30 @@ public class AuthController {
     
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        if (userService.existsByEmail(request.getEmail())) {
+        String email = request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase();
+        if (userService.existsByEmail(email)) {
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error("Email already exists"));
         }
-        
+
         User user = new User();
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
         user.setPassword(request.getPassword());
-        user.setFullName(request.getFullName() != null ? request.getFullName() : "User");
+        String fullName = request.getFullName();
+        user.setFullName(fullName != null && !fullName.trim().isEmpty() ? fullName.trim() : "User");
         user.setPhone(request.getPhone());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setGender(request.getGender());
         user.setAddress(request.getAddress());
-        // Set default avatar for new users
-        user.setAvatar("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face");
-        
+        user.setAvatar("https://i.pinimg.com/736x/af/80/37/af80374611f4673d1928a881727e13b0.jpg");
+
         User savedUser = userService.createUser(user);
-        
+
         AuthResponse authResponse = new AuthResponse();
         authResponse.setToken("dummy-token"); // TODO: Implement JWT
         authResponse.setUser(savedUser);
         authResponse.setMessage("User registered successfully");
-        
+
         return ResponseEntity.ok(ApiResponse.success("Registration successful", authResponse));
     }
     

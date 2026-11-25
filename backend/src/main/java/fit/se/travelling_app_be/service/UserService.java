@@ -115,9 +115,11 @@ public class UserService {
         return userRepository.save(user);
     }
     
-    @Cacheable(value = "users", key = "'exists:' + #email")
+    @Cacheable(value = "users", key = "'exists:' + #email.toLowerCase().trim()")
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        if (email == null) return false;
+        String trimmed = email.trim();
+        return userRepository.existsByEmail(trimmed) || userRepository.existsByEmailIgnoreCase(trimmed);
     }
     
     @Cacheable(value = "users", key = "'all'")

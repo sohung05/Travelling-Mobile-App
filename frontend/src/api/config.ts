@@ -136,12 +136,27 @@ export class HttpClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        // Nếu là 404, không cần parse JSON, chỉ throw error với message
         if (response.status === 404) {
           throw new Error(`No static resource ${endpoint}.`);
         }
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        const validationMessage = Array.isArray(errorData?.errors)
+          ? errorData.errors
+              .map((e: any) => {
+                const msg = e?.defaultMessage || e?.message;
+                const field = e?.field || e?.fieldName;
+                if (msg && field) return `${field}: ${msg}`;
+                return msg || (typeof e === 'string' ? e : null);
+              })
+              .filter(Boolean)
+              .join(', ')
+          : undefined;
+        const message =
+          validationMessage ||
+          errorData?.message ||
+          errorData?.error ||
+          `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(message);
       }
 
       // Handle empty responses (204 No Content, etc.)
