@@ -42,10 +42,30 @@ const RegisterScreen = () => {
   };
 
   const handleRegister = async () => {
-    const { name, email, phone, password, confirmPassword } = formData;
+    const name = formData.name.trim();
+    const email = formData.email.trim();
+    const phone = formData.phone.trim();
+    const { password, confirmPassword } = formData;
 
     if (!name || !email || !phone || !password || !confirmPassword) {
       Alert.alert('Th?ng b?o', 'Vui l?ng nh?p ??y ?? th?ng tin ??ng k?');
+      return;
+    }
+
+    if (name.length < 2) {
+      Alert.alert('L?i', 'H? v? t?n ph?i c? ?t nh?t 2 k? t?');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('L?i', 'Email kh?ng ??ng ??nh d?ng');
+      return;
+    }
+
+    const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+      Alert.alert('L?i', 'S? ?i?n tho?i kh?ng h?p l? (VD: 0912345678 ho?c +84912345678)');
       return;
     }
 
@@ -69,7 +89,7 @@ const RegisterScreen = () => {
       const success = await register({
         name,
         email,
-        phone,
+        phone: phone.replace(/\s/g, ''),
         password,
       });
 
@@ -254,6 +274,7 @@ const RegisterScreen = () => {
               title="Đăng ký tài khoản"
               onPress={handleRegister}
               loading={loading}
+              disabled={!acceptTerms}
               variant="darkPill"
               size="large"
               style={styles.registerButton}
