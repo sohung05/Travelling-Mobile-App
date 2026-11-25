@@ -384,13 +384,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
     } else {
-      // Update UI immediately for guest users
-      setUserFavorites(prev => {
-        if (prev.some(fav => fav.id === destination.id)) {
-          return prev;
-        }
-        return [...prev, destination];
-      });
+      return;
     }
   };
 

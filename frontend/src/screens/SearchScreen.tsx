@@ -221,12 +221,16 @@ const SearchScreen = () => {
 
 
   const handleFavoritePress = async (destinationId: string) => {
+    if (isGuest) {
+      navigation.navigate('Login');
+      return;
+    }
+
     try {
       const isCurrentlyFavorite = userFavorites.some(fav => fav.id === destinationId);
       if (isCurrentlyFavorite) {
         removeFavorite(destinationId);
       } else {
-        // Find the destination to add
         const destination = searchResults.find(dest => dest.id === destinationId);
         if (destination) {
           addFavorite(destination);
@@ -476,18 +480,16 @@ const SearchScreen = () => {
                       </View>
                     )}
                   </View>
-                  {!isGuest && (
-                    <TouchableOpacity
-                      onPress={() => handleFavoritePress(destination.id)}
-                      style={styles.favoriteIconButton}
-                    >
-                      <Ionicons
-                        name={userFavorites.some(fav => fav.id === destination.id) ? 'heart' : 'heart-outline'}
-                        size={18}
-                        color={userFavorites.some(fav => fav.id === destination.id) ? '#FF0000' : COLORS.white}
-                      />
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    onPress={() => handleFavoritePress(destination.id)}
+                    style={styles.favoriteIconButton}
+                  >
+                    <Ionicons
+                      name={userFavorites.some(fav => fav.id === destination.id) ? 'heart' : 'heart-outline'}
+                      size={18}
+                      color={userFavorites.some(fav => fav.id === destination.id) ? '#FF0000' : COLORS.white}
+                    />
+                  </TouchableOpacity>
                 </TouchableOpacity>
               ))}
             </View>

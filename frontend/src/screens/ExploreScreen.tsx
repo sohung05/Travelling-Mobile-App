@@ -479,19 +479,17 @@ const ExploreScreen = () => {
                   </View>
                 </View>
 
-                {!isGuest && (
-                  <TouchableOpacity
-                    onPress={() => handleFavoritePress(destination.id)}
-                    style={styles.favoriteIconButton}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name={userFavorites.some(fav => fav.id === destination.id) ? 'heart' : 'heart-outline'}
-                      size={16}
-                      color={userFavorites.some(fav => fav.id === destination.id) ? COLORS.liveRed : COLORS.slate}
-                    />
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  onPress={() => handleFavoritePress(destination.id)}
+                  style={styles.favoriteIconButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={userFavorites.some(fav => fav.id === destination.id) ? 'heart' : 'heart-outline'}
+                    size={16}
+                    color={userFavorites.some(fav => fav.id === destination.id) ? COLORS.liveRed : COLORS.slate}
+                  />
+                </TouchableOpacity>
               </TouchableOpacity>
             ))}
           </View>
