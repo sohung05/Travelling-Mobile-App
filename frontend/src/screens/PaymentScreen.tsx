@@ -17,6 +17,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination, Booking } from '../types';
 import { Header, Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'Payment'>;
@@ -40,6 +41,7 @@ interface BookingSummary {
 
 const PaymentScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const route = useRoute<RouteProps>();
   const { destination, services } = route.params;
   const departureDate = (route.params as any).departureDate;
@@ -168,7 +170,7 @@ const PaymentScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <Header title="Thanh toán" showBack onBackPress={() => navigation.goBack()} />
 
       <ScrollView showsVerticalScrollIndicator={false}>

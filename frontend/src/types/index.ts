@@ -65,6 +65,8 @@ export interface User {
   avatar?: string;
   phone?: string;
   dateOfBirth?: string;
+  gender?: string;
+  address?: string;
   nationality?: string;
   favorites: string[]; // destination IDs
   bookings: string[]; // booking IDs

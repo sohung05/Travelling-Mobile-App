@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, FONTS } from '../constants/theme';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 interface SectionEyebrowProps {
   title: string;
@@ -20,11 +21,12 @@ export const SectionEyebrow: React.FC<SectionEyebrowProps> = ({
   style,
   badge,
 }) => {
+  const { colors } = useDarkMode();
   return (
     <View style={[styles.container, style]}>
       <View style={styles.textContainer}>
         <View style={styles.labelWrapper}>
-          <Text style={styles.eyebrowTitle} numberOfLines={1}>
+          <Text style={[styles.eyebrowTitle, { color: colors.text }]} numberOfLines={1}>
             {title}
           </Text>
           {badge && (
@@ -34,7 +36,7 @@ export const SectionEyebrow: React.FC<SectionEyebrowProps> = ({
           )}
         </View>
         {subtitle ? (
-          <Text style={styles.subtitle} numberOfLines={1}>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>
             {subtitle}
           </Text>
         ) : null}

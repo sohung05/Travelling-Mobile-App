@@ -21,11 +21,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { biometricService } from '../services/biometricService';
 import { authService } from '../api/authService';
 import { userService } from '../api/userService';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const SecurityScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const { user, isBiometricAvailable, biometricType } = useAuth();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -194,7 +196,7 @@ const SecurityScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity

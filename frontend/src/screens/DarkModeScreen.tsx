@@ -13,12 +13,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS } from '../constants/theme';
 import { RootStackParamList } from '../types';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const DarkModeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [selectedMode, setSelectedMode] = useState('light');
+  const { isDarkMode, toggleDarkMode, colors } = useDarkMode();
+  const [selectedMode, setSelectedMode] = useState(isDarkMode ? 'dark' : 'light');
 
   const modeOptions = [
     {
@@ -46,10 +48,18 @@ const DarkModeScreen = () => {
 
   const handleModeSelect = (modeId: string) => {
     setSelectedMode(modeId);
+    if (modeId === 'dark' && !isDarkMode) {
+      toggleDarkMode();
+    } else if (modeId === 'light' && isDarkMode) {
+      toggleDarkMode();
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top']}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header - giống hệt style hình */}
         <View style={styles.header}>
@@ -65,8 +75,8 @@ const DarkModeScreen = () => {
         </View>
 
         {/* Mode Selection Section */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Chọn chế độ hiển thị</Text>
+        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Chọn chế độ hiển thị</Text>
           
           {modeOptions.map((mode, index) => (
             <View key={mode.id}>
@@ -79,9 +89,9 @@ const DarkModeScreen = () => {
                     <Ionicons name={mode.icon as any} size={24} color={COLORS.primary} />
                   </View>
                   <View style={styles.modeInfo}>
-                    <Text style={styles.modeTitle}>{mode.title}</Text>
-                    <Text style={styles.modeSubtitle}>{mode.subtitle}</Text>
-                    <Text style={styles.modeDescription}>{mode.description}</Text>
+                    <Text style={[styles.modeTitle, { color: colors.text }]}>{mode.title}</Text>
+                    <Text style={[styles.modeSubtitle, { color: colors.textSecondary }]}>{mode.subtitle}</Text>
+                    <Text style={[styles.modeDescription, { color: colors.textSecondary }]}>{mode.description}</Text>
                   </View>
                 </View>
                 <View style={styles.radioButton}>
@@ -90,20 +100,22 @@ const DarkModeScreen = () => {
                   )}
                 </View>
               </TouchableOpacity>
-              {index < modeOptions.length - 1 && <View style={styles.divider} />}
+              {index < modeOptions.length - 1 && (
+                <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              )}
             </View>
           ))}
         </View>
 
         {/* Info Section */}
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
           <View style={styles.infoItem}>
             <View style={styles.infoIcon}>
               <Ionicons name="information-circle" size={24} color={COLORS.info} />
             </View>
             <View style={styles.infoInfo}>
-              <Text style={styles.infoTitle}>Thông tin</Text>
-              <Text style={styles.infoDescription}>
+              <Text style={[styles.infoTitle, { color: colors.text }]}>Thông tin</Text>
+              <Text style={[styles.infoDescription, { color: colors.textSecondary }]}>
                 Chế độ tối giúp giảm mỏi mắt khi sử dụng ứng dụng trong môi trường thiếu sáng. 
                 Nó cũng có thể giúp tiết kiệm pin trên một số thiết bị có màn hình OLED.
               </Text>
@@ -112,8 +124,8 @@ const DarkModeScreen = () => {
         </View>
 
         {/* Preview Section */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Xem trước</Text>
+        <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Xem trước</Text>
           
           <View style={styles.previewCard}>
             <View style={styles.previewHeader}>
