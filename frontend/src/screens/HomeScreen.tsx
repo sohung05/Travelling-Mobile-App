@@ -24,6 +24,7 @@ import { DestinationCard, CategoryCard, NotificationModal, SectionEyebrow, Chatb
 import { FilterModal, FilterOptions, getCategoryGroup } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDestinationPrice } from '../utils/destination';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +39,7 @@ const HERO_BACKGROUND_IMAGES = [
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
+  const { colors } = useDarkMode();
   const {
     user,
     isGuest,
@@ -206,7 +208,7 @@ const HomeScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Animated Scenic Background Carousel behind Header & Hero */}
       <View style={styles.heroBackgroundWrapper} pointerEvents="none">
         <Animated.Image

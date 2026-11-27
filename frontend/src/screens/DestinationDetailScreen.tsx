@@ -26,6 +26,7 @@ import { SectionEyebrow } from '../components';
 import { RootStackParamList, Destination, Review } from '../types';
 import { userService, destinationService, reviewService, useReviewsByDestination } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 import { GOOGLE_MAPS_API_KEY } from '../api/config';
 import {
   formatDestinationPrice,
@@ -52,6 +53,7 @@ const getDestinationCoordinates = (dest: Destination | any) => {
 
 const DestinationDetailScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { isDarkMode, colors } = useDarkMode();
   const route = useRoute<RouteProps>();
   const { destination: initialDestination } = route.params;
   const { isGuest, user, addFavorite, removeFavorite, setPendingTour, userReviews } = useAuth();
@@ -323,7 +325,7 @@ const DestinationDetailScreen = () => {
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Fixed Header - Always visible */}
       <View style={styles.fixedHeader} pointerEvents="box-none">
         <Animated.View
@@ -331,16 +333,19 @@ const DestinationDetailScreen = () => {
             styles.fixedHeaderBackground,
             {
               opacity: fixedHeaderBgOpacity,
+              backgroundColor: isDarkMode ? colors.card : COLORS.white,
             },
           ]}
         />
         <SafeAreaView style={styles.fixedHeaderContent} edges={['top']} pointerEvents="box-none">
           <TouchableOpacity
-            style={styles.headerButton}
+            style={[styles.headerButton, {
+              backgroundColor: isDarkMode ? 'rgba(30,30,30,0.92)' : COLORS.white,
+            }]}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
-            <Ionicons name="chevron-back" size={22} color={COLORS.ink} />
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
           </TouchableOpacity>
 
           <View style={styles.fixedHeaderTitleContainer}>
@@ -362,6 +367,7 @@ const DestinationDetailScreen = () => {
                 styles.fixedHeaderTitleBlack,
                 {
                   opacity: fixedHeaderBlackTextOpacity,
+                  color: colors.text,
                 },
               ]}
               numberOfLines={1}
@@ -378,7 +384,7 @@ const DestinationDetailScreen = () => {
             <Ionicons
               name={isFavorite ? 'heart' : 'heart-outline'}
               size={22}
-              color={isFavorite ? '#EF4444' : COLORS.ink}
+              color={isFavorite ? '#EF4444' : colors.text}
             />
           </TouchableOpacity>
         </SafeAreaView>
@@ -424,22 +430,26 @@ const DestinationDetailScreen = () => {
         {images.length > 1 && (
           <>
             <TouchableOpacity
-              style={[styles.imageNavButton, styles.imageNavLeft]}
+              style={[styles.imageNavButton, styles.imageNavLeft, {
+                backgroundColor: isDarkMode ? colors.card : COLORS.white,
+              }]}
               onPress={() => scrollToImage(currentImageIndex - 1)}
               activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel="Xem hình trước"
             >
-              <Ionicons name="chevron-back" size={22} color={COLORS.ink} />
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.imageNavButton, styles.imageNavRight]}
+              style={[styles.imageNavButton, styles.imageNavRight, {
+                backgroundColor: isDarkMode ? colors.card : COLORS.white,
+              }]}
               onPress={() => scrollToImage(currentImageIndex + 1)}
               activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel="Xem hình tiếp theo"
             >
-              <Ionicons name="chevron-forward" size={22} color={COLORS.ink} />
+              <Ionicons name="chevron-forward" size={22} color={colors.text} />
             </TouchableOpacity>
           </>
         )}
@@ -474,7 +484,11 @@ const DestinationDetailScreen = () => {
         <View style={{ height: HEADER_HEIGHT - 24 }} />
 
         {/* Curved Content Sheet Container */}
-        <View style={styles.sheetContainer}>
+        <View style={[styles.sheetContainer, {
+          backgroundColor: isDarkMode ? colors.card : COLORS.surface,
+          borderColor: isDarkMode ? colors.border : 'transparent',
+          borderWidth: isDarkMode ? 1 : 0,
+        }]}>
           {/* Sheet drag indicator hint */}
           <View style={styles.dragHandleContainer}>
             <View style={styles.dragHandle} />
@@ -482,10 +496,10 @@ const DestinationDetailScreen = () => {
 
           {/* Title and Location */}
           <View style={styles.titleSection}>
-            <Text style={styles.title}>{destination.name}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>{destination.name}</Text>
             <View style={styles.locationRow}>
               <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
-              <Text style={styles.locationText}>
+              <Text style={[styles.locationText, { color: colors.textSecondary }]}>
                 {(destination.location?.city || destination.country || '').toUpperCase()}
               </Text>
             </View>
@@ -496,18 +510,27 @@ const DestinationDetailScreen = () => {
 
         {/* Statistics Row - All in one line */}
         <View style={styles.statsRow}>
-          <View style={styles.statPill}>
+          <View style={[styles.statPill, {
+            backgroundColor: isDarkMode ? colors.soft : '#E6F4F2',
+            borderColor: isDarkMode ? colors.border : '#D1EAE6',
+          }]}>
             <Ionicons name="eye-outline" size={13} color={COLORS.slate} />
-            <Text style={styles.visitedText}>Ghé thăm {visitedCount.toLocaleString('vi-VN')}</Text>
+            <Text style={[styles.visitedText, { color: colors.textSecondary }]}>Ghé thăm {visitedCount.toLocaleString('vi-VN')}</Text>
           </View>
-          <View style={styles.statPill}>
+          <View style={[styles.statPill, {
+            backgroundColor: isDarkMode ? colors.soft : '#E6F4F2',
+            borderColor: isDarkMode ? colors.border : '#D1EAE6',
+          }]}>
             <Ionicons name="star" size={13} color={COLORS.amber} />
-            <Text style={styles.statPillText}>
+            <Text style={[styles.statPillText, { color: colors.text }]}>
               {getRealTimeRating().toFixed(1)}
             </Text>
           </View>
-          <View style={styles.statPill}>
-            <Text style={styles.statPillText}>({getRealTimeReviewsCount()} đánh giá)</Text>
+          <View style={[styles.statPill, {
+            backgroundColor: isDarkMode ? colors.soft : '#E6F4F2',
+            borderColor: isDarkMode ? colors.border : '#D1EAE6',
+          }]}>
+            <Text style={[styles.statPillText, { color: colors.text }]}>({getRealTimeReviewsCount()} đánh giá)</Text>
           </View>
         </View>
 
@@ -516,37 +539,49 @@ const DestinationDetailScreen = () => {
           <SectionEyebrow title="Thông tin chuyến đi" style={{ paddingHorizontal: 0 }} />
           <View style={styles.infoGrid}>
             {!!typeLabel && (
-              <View style={styles.infoChip}>
+              <View style={[styles.infoChip, {
+                backgroundColor: isDarkMode ? colors.soft : '#F3FBFA',
+                borderColor: isDarkMode ? colors.border : '#D1EAE6',
+              }]}>
                 <Ionicons name="globe-outline" size={16} color={COLORS.primary} />
                 <View style={styles.infoChipContent}>
-                  <Text style={styles.infoChipLabel}>Phạm vi</Text>
-                  <Text style={styles.infoChipValue}>{typeLabel}</Text>
+                  <Text style={[styles.infoChipLabel, { color: colors.textSecondary }]}>Phạm vi</Text>
+                  <Text style={[styles.infoChipValue, { color: colors.text }]}>{typeLabel}</Text>
                 </View>
               </View>
             )}
             {!!destination.category && (
-              <View style={styles.infoChip}>
+              <View style={[styles.infoChip, {
+                backgroundColor: isDarkMode ? colors.soft : '#F3FBFA',
+                borderColor: isDarkMode ? colors.border : '#D1EAE6',
+              }]}>
                 <Ionicons name="pricetag-outline" size={16} color={COLORS.primary} />
                 <View style={styles.infoChipContent}>
-                  <Text style={styles.infoChipLabel}>Danh mục</Text>
-                  <Text style={styles.infoChipValue}>{getCategoryName(destination.category)}</Text>
+                  <Text style={[styles.infoChipLabel, { color: colors.textSecondary }]}>Danh mục</Text>
+                  <Text style={[styles.infoChipValue, { color: colors.text }]}>{getCategoryName(destination.category)}</Text>
                 </View>
               </View>
             )}
             {!!destination.duration && (
-              <View style={styles.infoChip}>
+              <View style={[styles.infoChip, {
+                backgroundColor: isDarkMode ? colors.soft : '#F3FBFA',
+                borderColor: isDarkMode ? colors.border : '#D1EAE6',
+              }]}>
                 <Ionicons name="time-outline" size={16} color={COLORS.primary} />
                 <View style={styles.infoChipContent}>
-                  <Text style={styles.infoChipLabel}>Thời lượng</Text>
-                  <Text style={styles.infoChipValue}>{destination.duration}</Text>
+                  <Text style={[styles.infoChipLabel, { color: colors.textSecondary }]}>Thời lượng</Text>
+                  <Text style={[styles.infoChipValue, { color: colors.text }]}>{destination.duration}</Text>
                 </View>
               </View>
             )}
-            <View style={styles.infoChip}>
+            <View style={[styles.infoChip, {
+              backgroundColor: isDarkMode ? colors.soft : '#F3FBFA',
+              borderColor: isDarkMode ? colors.border : '#D1EAE6',
+            }]}>
               <Ionicons name="cash-outline" size={16} color={COLORS.primary} />
               <View style={styles.infoChipContent}>
-                <Text style={styles.infoChipLabel}>Giá từ</Text>
-                <Text style={styles.infoChipValue}>{displayPrice}</Text>
+                <Text style={[styles.infoChipLabel, { color: colors.textSecondary }]}>Giá từ</Text>
+                <Text style={[styles.infoChipValue, { color: colors.text }]}>{displayPrice}</Text>
               </View>
             </View>
           </View>
@@ -557,10 +592,10 @@ const DestinationDetailScreen = () => {
           <SectionEyebrow title="Mô tả điểm đến" style={{ paddingHorizontal: 0 }} />
           {!!destination.shortDescription &&
             destination.shortDescription !== destination.description && (
-              <Text style={styles.shortDescription}>{destination.shortDescription}</Text>
+              <Text style={[styles.shortDescription, { color: colors.text }]}>{destination.shortDescription}</Text>
             )}
           <Text
-            style={styles.description}
+            style={[styles.description, { color: colors.textSecondary }]}
             numberOfLines={expandedDescription ? undefined : 4}
           >
             {destination.description || 'Chưa có mô tả chi tiết.'}
@@ -590,7 +625,7 @@ const DestinationDetailScreen = () => {
               {highlights.map((item, index) => (
                 <View key={`${item}-${index}`} style={styles.highlightItem}>
                   <Ionicons name="checkmark-circle" size={18} color={COLORS.primary} />
-                  <Text style={styles.highlightText}>{String(item)}</Text>
+                  <Text style={[styles.highlightText, { color: colors.text }]}>{String(item)}</Text>
                 </View>
               ))}
             </View>
@@ -607,9 +642,12 @@ const DestinationDetailScreen = () => {
               contentContainerStyle={styles.includedContainer}
             >
               {servicesToShow.map((service, index) => (
-                <View key={index} style={styles.includedPill}>
+                <View key={index} style={[styles.includedPill, {
+                  backgroundColor: isDarkMode ? colors.soft : '#E6F4F2',
+                  borderColor: isDarkMode ? colors.border : '#D1EAE6',
+                }]}>
                   <Ionicons name={service.icon as any} size={18} color={COLORS.primary} />
-                  <Text style={styles.includedPillText}>{service.label}</Text>
+                  <Text style={[styles.includedPillText, { color: colors.text }]}>{service.label}</Text>
                 </View>
               ))}
             </ScrollView>
@@ -619,7 +657,7 @@ const DestinationDetailScreen = () => {
         {/* Location/Map Section */}
         <View style={styles.section}>
           <SectionEyebrow title="Vị trí & Bản đồ" style={{ paddingHorizontal: 0 }} />
-          {!!mapSubtitle && <Text style={styles.locationSubtitle}>{mapSubtitle}</Text>}
+          {!!mapSubtitle && <Text style={[styles.locationSubtitle, { color: colors.textSecondary }]}>{mapSubtitle}</Text>}
           <View style={styles.mapContainer}>
             {(() => {
               const coords = getDestinationCoordinates(destination);
@@ -642,10 +680,10 @@ const DestinationDetailScreen = () => {
               if (!latitude || !longitude) {
                 console.warn('⚠️ No coordinates available for destination:', destination.name);
                 return (
-                  <View style={styles.mapPlaceholder}>
+                  <View style={[styles.mapPlaceholder, { backgroundColor: isDarkMode ? colors.soft : '#E8F5E9' }]}>
                     <Ionicons name="map-outline" size={48} color={COLORS.textSecondary} />
-                    <Text style={styles.mapPlaceholderText}>Bản đồ không khả dụng</Text>
-                    <Text style={styles.mapPlaceholderSubtext}>
+                    <Text style={[styles.mapPlaceholderText, { color: colors.text }]}>Bản đồ không khả dụng</Text>
+                    <Text style={[styles.mapPlaceholderSubtext, { color: colors.textSecondary }]}>
                       Không có tọa độ cho địa điểm này
                     </Text>
                   </View>
@@ -854,31 +892,37 @@ const DestinationDetailScreen = () => {
           {destinationReviews.length > 0 ? (
             <View>
               {destinationReviews.slice(0, 4).map((review, index) => (
-                <View key={review.id || index} style={styles.reviewItem}>
+                <View key={review.id || index} style={[styles.reviewItem, {
+                  backgroundColor: isDarkMode ? colors.card : COLORS.white,
+                  borderColor: isDarkMode ? colors.border : '#E0E0E0',
+                }]}>
                   <Image
                     source={{ uri: review.userAvatar || 'https://via.placeholder.com/48' }}
                     style={styles.reviewAvatar}
                   />
                   <View style={styles.reviewContent}>
                     <View style={styles.reviewHeaderRow}>
-                      <Text style={styles.reviewName}>{review.userName || 'Người dùng'}</Text>
+                      <Text style={[styles.reviewName, { color: colors.text }]}>{review.userName || 'Người dùng'}</Text>
                       <Text style={styles.reviewDate}>{formatDate(review.createdAt)}</Text>
                     </View>
                     <View style={styles.reviewStarsRow}>
                       {renderStars(review.rating)}
                     </View>
                     {review.comment && (
-                      <Text style={styles.reviewComment}>{review.comment}</Text>
+                      <Text style={[styles.reviewComment, { color: colors.text }]}>{review.comment}</Text>
                     )}
                   </View>
                 </View>
               ))}
               {destinationReviews.length > 4 && (
                 <TouchableOpacity
-                  style={styles.seeAllReviewsButton}
+                  style={[styles.seeAllReviewsButton, {
+                    backgroundColor: isDarkMode ? colors.card : COLORS.white,
+                    borderColor: isDarkMode ? colors.border : '#E0E0E0',
+                  }]}
                   onPress={() => navigation.navigate('Reviews', { destinationId: destination.id })}
                 >
-                  <Text style={styles.seeAllReviewsButtonText}>
+                  <Text style={[styles.seeAllReviewsButtonText, { color: colors.text }]}>
                     Xem tất cả ({destinationReviews.length} đánh giá)
                   </Text>
                 </TouchableOpacity>
@@ -897,13 +941,16 @@ const DestinationDetailScreen = () => {
       </Animated.ScrollView>
 
       {/* Sticky Bottom Bar */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, {
+        backgroundColor: isDarkMode ? colors.card : COLORS.white,
+        borderTopColor: isDarkMode ? colors.border : COLORS.hairline,
+      }]}>
         <View style={styles.priceContainer}>
           <View style={styles.priceRow}>
-            <Text style={styles.priceValue}>{displayPrice}</Text>
-            <Text style={styles.priceUnit}>/ người</Text>
+            <Text style={[styles.priceValue, { color: isDarkMode ? colors.primary : COLORS.primaryDark }]}>{displayPrice}</Text>
+            <Text style={[styles.priceUnit, { color: colors.textSecondary }]}>/ người</Text>
           </View>
-          <Text style={styles.priceDisclaimer}>Bao gồm thuế & phí</Text>
+          <Text style={[styles.priceDisclaimer, { color: colors.textSecondary }]}>Bao gồm thuế & phí</Text>
         </View>
         <TouchableOpacity
           style={styles.bookButton}

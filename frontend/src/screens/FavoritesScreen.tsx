@@ -19,11 +19,13 @@ import { RootStackParamList } from '../types';
 import { SectionEyebrow, Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDestinationPrice } from '../utils/destination';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const FavoritesScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const { isGuest, userFavorites, removeFavorite, setPendingScreenAccess } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -49,7 +51,7 @@ const FavoritesScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <SectionEyebrow 

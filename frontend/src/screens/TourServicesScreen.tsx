@@ -23,6 +23,7 @@ import { RootStackParamList, Destination } from '../types';
 import { Header, Button, SectionEyebrow } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDestinationPrice, getDestinationPrice } from '../utils/destination';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type RouteProps = RouteProp<RootStackParamList, 'TourServices'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -40,6 +41,7 @@ interface TourService {
 
 const TourServicesScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const route = useRoute<RouteProps>();
   const { destination } = route.params;
   const { isGuest } = useAuth();
@@ -282,7 +284,7 @@ const TourServicesScreen = () => {
   const calendarDays = getCalendarGrid(calendarMonth);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={styles.customHeader}>
         <TouchableOpacity
           style={styles.backButton}

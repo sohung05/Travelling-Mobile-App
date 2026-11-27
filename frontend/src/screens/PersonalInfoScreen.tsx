@@ -8,6 +8,7 @@ import {
   Image,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,11 +20,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SIZES, FONTS, SHADOWS, DEFAULT_AVATAR } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const PersonalInfoScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const { user, userBookings, userFavorites, updateUserAvatar, updateUserInfo } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -147,7 +150,7 @@ const PersonalInfoScreen = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim()) {
       Alert.alert('Lỗi', 'Vui lòng nhập tên');
       return;
@@ -158,31 +161,53 @@ const PersonalInfoScreen = () => {
       return;
     }
 
-    updateUserInfo({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      dateOfBirth: formData.dateOfBirth,
-      gender: formData.gender,
-      address: formData.address,
-      avatar: formData.avatar,
-    } as any);
-    
-    setIsEditing(false);
+    try {
+      const updatedUser = await updateUserInfo({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        address: formData.address,
+        avatar: formData.avatar,
+      });
+
+      if (!updatedUser) {
+        throw new Error('Không thể cập nhật thông tin');
+      }
+
+      setFormData({
+        name: updatedUser.name || '',
+        email: updatedUser.email || '',
+        phone: updatedUser.phone || '',
+        dateOfBirth: updatedUser.dateOfBirth || '',
+        gender: updatedUser.gender || '',
+        address: updatedUser.address || '',
+        avatar: updatedUser.avatar || '',
+      });
+      setIsEditing(false);
+      Alert.alert('Thành công', 'Thông tin cá nhân đã được cập nhật');
+    } catch (error) {
+      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể cập nhật thông tin cá nhân');
+    }
   };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
+    const date = new Date(`${dateString.slice(0, 10)}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return '';
     return date.toLocaleDateString('vi-VN');
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
       setFormData(prev => ({
         ...prev,
-        dateOfBirth: selectedDate.toISOString().split('T')[0]
+        dateOfBirth: `${year}-${month}-${day}`
       }));
     }
   };
@@ -211,7 +236,7 @@ const PersonalInfoScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -342,14 +367,40 @@ const PersonalInfoScreen = () => {
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Ngày sinh</Text>
                   {isEditing ? (
-                    <TouchableOpacity 
-                      style={styles.editInput}
-                      onPress={() => setShowDatePicker(true)}
-                    >
-                      <Text style={styles.editInputText}>
-                        {formData.dateOfBirth ? formatDate(formData.dateOfBirth) : 'Chọn ngày sinh'}
-                      </Text>
-                    </TouchableOpacity>
+                    Platform.OS === 'web' ? (
+                      React.createElement('input', {
+                        type: 'date',
+                        value: formData.dateOfBirth,
+                        max: new Date().toISOString().split('T')[0],
+                        'aria-label': 'Ngày sinh',
+                        onChange: (event: any) => {
+                          const value = event?.target?.value;
+                          if (value) {
+                            setFormData(prev => ({ ...prev, dateOfBirth: value }));
+                          }
+                        },
+                        style: {
+                          width: '100%',
+                          height: 44,
+                          border: 'none',
+                          outline: 'none',
+                          background: 'transparent',
+                          color: COLORS.text,
+                          fontSize: 16,
+                          fontFamily: 'System',
+                          boxSizing: 'border-box',
+                        },
+                      })
+                    ) : (
+                      <TouchableOpacity 
+                        style={styles.editInput}
+                        onPress={() => setShowDatePicker(true)}
+                      >
+                        <Text style={styles.editInputText}>
+                          {formData.dateOfBirth ? formatDate(formData.dateOfBirth) : 'Chọn ngày sinh'}
+                        </Text>
+                      </TouchableOpacity>
+                    )
                   ) : (
                     <Text style={styles.infoValue}>
                       {formData.dateOfBirth ? formatDate(formData.dateOfBirth) : 'Chưa cập nhật'}
@@ -461,9 +512,9 @@ const PersonalInfoScreen = () => {
       </ScrollView>
 
       {/* Date Picker Modal */}
-      {showDatePicker && (
+      {showDatePicker && Platform.OS !== 'web' && (
         <DateTimePicker
-          value={formData.dateOfBirth ? new Date(formData.dateOfBirth) : new Date()}
+          value={formData.dateOfBirth ? new Date(`${formData.dateOfBirth}T00:00:00`) : new Date()}
           mode="date"
           display="default"
           onChange={handleDateChange}

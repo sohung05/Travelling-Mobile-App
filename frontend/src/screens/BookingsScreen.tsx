@@ -19,11 +19,13 @@ import { RootStackParamList, Booking } from '../types';
 import { bookingService, userService } from '../api';
 import { Loading, SectionEyebrow } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const BookingsScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const { user, isGuest, userBookings, setPendingScreenAccess, removeBooking, userReviews, refreshBookings } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -301,7 +303,7 @@ const BookingsScreen = () => {
 
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header with Section Eyebrow */}
       <View style={styles.header}>
         <SectionEyebrow 

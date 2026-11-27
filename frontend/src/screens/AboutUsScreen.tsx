@@ -203,7 +203,7 @@ const AboutUsScreen = () => {
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Địa chỉ</Text>
-                  <Text style={styles.contactValue}>123 Đường ABC, Quận 1, TP.HCM</Text>
+                  <Text style={styles.contactValue}>Số 12 Nguyễn Văn Bảo, P. Hạnh Thông, Thành phố Hồ Chí Minh</Text>
                 </View>
               </View>
             </View>

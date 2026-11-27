@@ -129,6 +129,7 @@ class UserServiceTest {
         User updatedUser = new User();
         updatedUser.setFullName("Updated Name");
         updatedUser.setPhone("0987654321");
+        updatedUser.setDateOfBirth(LocalDate.of(2001, 6, 15));
         
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
@@ -138,6 +139,7 @@ class UserServiceTest {
 
         // Then
         assertNotNull(result);
+        assertEquals(LocalDate.of(2001, 6, 15), testUser.getDateOfBirth());
         verify(userRepository, times(1)).findById(testUserId);
         verify(userRepository, times(1)).save(any(User.class));
     }

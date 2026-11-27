@@ -21,8 +21,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const RegisterSuccessScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
-  const handleExplore = () => {
-    navigation.replace('MainTabs');
+  const handleLogin = () => {
+    navigation.replace('Login');
   };
 
   return (
@@ -52,7 +52,7 @@ const RegisterSuccessScreen = () => {
 
           {/* Subtitle */}
           <Text style={styles.subtitle}>
-            Sau đây bạn có thể khám phá bất kỳ nơi nào bạn muốn và tận hưởng nó!
+            Vui lòng đăng nhập để bắt đầu khám phá và sử dụng tài khoản của bạn.
           </Text>
         </View>
 
@@ -60,10 +60,10 @@ const RegisterSuccessScreen = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
-            onPress={handleExplore}
+            onPress={handleLogin}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Tiếp tục khám phá</Text>
+            <Text style={styles.buttonText}>Đăng nhập ngay</Text>
           </TouchableOpacity>
         </View>
       </View>

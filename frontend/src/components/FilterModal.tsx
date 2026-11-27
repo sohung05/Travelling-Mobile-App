@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { COLORS, SIZES, FONTS, SHADOWS, CATEGORY_NAMES } from '../constants';
 import { Destination, DestinationCategory } from '../types';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 export type LocationScope = 'all' | 'domestic' | 'international';
 
@@ -128,6 +129,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   destinations = [],
 }) => {
   const [filters, setFilters] = useState<FilterOptions>(currentFilters);
+  const { isDarkMode, colors } = useDarkMode();
 
   // Tính toán price range động từ dữ liệu API
   const priceStats = useMemo(() => {
@@ -221,12 +223,16 @@ export const FilterModal: React.FC<FilterModalProps> = ({
     >
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable
-          style={styles.modalContainer}
+          style={[styles.modalContainer, {
+            backgroundColor: isDarkMode ? colors.card : COLORS.white,
+            borderWidth: isDarkMode ? 1 : 0,
+            borderColor: colors.border,
+          }]}
           onPress={(e) => e.stopPropagation()}
         >
           {/* Drag Handle Indicator */}
           <View style={styles.handleContainer}>
-            <View style={styles.handle} />
+            <View style={[styles.handle, { backgroundColor: colors.border }]} />
           </View>
 
           <View style={styles.header}>
@@ -234,21 +240,21 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <View style={styles.headerIconContainer}>
                 <Ionicons name="options-outline" size={20} color={COLORS.primary} />
               </View>
-              <Text style={styles.headerTitle}>Bộ lọc tìm kiếm</Text>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Bộ lọc tìm kiếm</Text>
             </View>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <Ionicons name="close" size={20} color={COLORS.charcoal} />
+              <Ionicons name="close" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {/* Price Range */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Khoảng giá</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Khoảng giá</Text>
               <View style={styles.priceSliderContainer}>
                 <MultiSlider
                   values={[
@@ -283,12 +289,16 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
             {/* Categories */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Danh mục</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Danh mục</Text>
               <View style={styles.optionsContainer}>
                 <TouchableOpacity
                   style={[
                     styles.optionButton,
                     !filters.category && styles.selectedOption,
+                    isDarkMode && !filters.category ? null : isDarkMode ? {
+                      backgroundColor: colors.soft,
+                      borderColor: colors.border,
+                    } : null,
                   ]}
                   onPress={() => setFilters((prev) => ({ ...prev, category: null }))}
                   activeOpacity={0.7}
@@ -297,6 +307,11 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     style={[
                       styles.optionText,
                       !filters.category && styles.selectedOptionText,
+                      isDarkMode && !filters.category
+                        ? { color: COLORS.white }
+                        : isDarkMode
+                          ? { color: colors.text }
+                          : null,
                     ]}
                   >
                     Tất cả
@@ -308,6 +323,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     style={[
                       styles.optionButton,
                       isCategorySelected(cat.key) && styles.selectedOption,
+                      isDarkMode && !isCategorySelected(cat.key) ? {
+                        backgroundColor: colors.soft,
+                        borderColor: colors.border,
+                      } : null,
                     ]}
                     onPress={() => handleCategoryToggle(cat.key)}
                     activeOpacity={0.7}
@@ -316,6 +335,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                       style={[
                         styles.optionText,
                         isCategorySelected(cat.key) && styles.selectedOptionText,
+                          isDarkMode && !isCategorySelected(cat.key) ? { color: colors.text } : null,
                       ]}
                     >
                       {cat.label}{categoryCounts[cat.key] ? ` (${categoryCounts[cat.key]})` : ''}
@@ -327,7 +347,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
             {/* Location Scope */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Khu vực</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Khu vực</Text>
               <View style={styles.optionsContainer}>
                 {LOCATION_SCOPE_OPTIONS.map((option) => (
                   <TouchableOpacity
@@ -335,6 +355,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                     style={[
                       styles.optionButton,
                       filters.locationScope === option.value && styles.selectedOption,
+                      isDarkMode && filters.locationScope !== option.value ? {
+                        backgroundColor: colors.soft,
+                        borderColor: colors.border,
+                      } : null,
                     ]}
                     onPress={() => handleLocationScopeSelect(option.value)}
                     activeOpacity={0.7}
@@ -343,6 +367,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                       style={[
                         styles.optionText,
                         filters.locationScope === option.value && styles.selectedOptionText,
+                        isDarkMode && filters.locationScope !== option.value ? { color: colors.text } : null,
                       ]}
                     >
                       {option.label}
@@ -354,7 +379,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
             {/* Rating */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Đánh giá</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Đánh giá</Text>
               <View style={styles.optionsContainer}>
                 {RATING_RANGES.map((ratingRange, index) => (
                   <TouchableOpacity
@@ -363,6 +388,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                       styles.optionButton,
                       isRatingSelected(ratingRange.min, ratingRange.max) &&
                         styles.selectedOption,
+                      isDarkMode && !isRatingSelected(ratingRange.min, ratingRange.max) ? {
+                        backgroundColor: colors.soft,
+                        borderColor: colors.border,
+                      } : null,
                     ]}
                     onPress={() => handleRatingSelect(ratingRange.min, ratingRange.max)}
                     activeOpacity={0.7}
@@ -374,6 +403,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                           styles.optionText,
                           isRatingSelected(ratingRange.min, ratingRange.max) &&
                             styles.selectedOptionText,
+                          isDarkMode && !isRatingSelected(ratingRange.min, ratingRange.max)
+                            ? { color: colors.text }
+                            : null,
                         ]}
                       >
                         {ratingRange.label}
@@ -388,7 +420,10 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             <View style={{ height: 20 }} />
           </ScrollView>
 
-          <View style={styles.footer}>
+          <View style={[styles.footer, {
+            backgroundColor: isDarkMode ? colors.card : COLORS.white,
+            borderTopColor: colors.border,
+          }]}>
             <TouchableOpacity
               style={styles.resetButton}
               onPress={handleReset}
