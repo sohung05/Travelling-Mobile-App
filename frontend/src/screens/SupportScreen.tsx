@@ -170,7 +170,7 @@ const SupportScreen = () => {
                 </View>
                 <View style={styles.appInfoInfo}>
                   <Text style={styles.appInfoTitle}>Ngày cập nhật</Text>
-                  <Text style={styles.appInfoValue}>15/12/2024</Text>
+                  <Text style={styles.appInfoValue}>15/01/2026</Text>
                 </View>
               </View>
             </View>

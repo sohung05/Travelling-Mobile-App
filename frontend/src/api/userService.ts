@@ -35,18 +35,26 @@ class UserService {
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {
-    try {
-      const updated = await HttpClient.put<User>(`${API_CONFIG.ENDPOINTS.USER}/${userId}`, updates);
-      await AsyncStorage.setItem('user_data', JSON.stringify(updated));
-      return updated;
-    } catch (error) {
-      console.log('🔄 BE chưa khả dụng, cập nhật thông tin user vào bộ nhớ cục bộ');
-      const storedUserData = await AsyncStorage.getItem('user_data');
-      let current = storedUserData ? JSON.parse(storedUserData) : (userId === mockAdminUser.id ? mockAdminUser : {});
-      const merged = { ...current, ...updates };
-      await AsyncStorage.setItem('user_data', JSON.stringify(merged));
-      return merged as User;
+    const backendUpdates: Partial<User> & { fullName?: string } = { ...updates };
+    if (updates.name !== undefined) {
+      backendUpdates.fullName = updates.name;
+      delete (backendUpdates as Partial<User>).name;
     }
+
+    const updated = await HttpClient.put<any>(`${API_CONFIG.ENDPOINTS.USER}/${userId}`, backendUpdates);
+    const normalizedUser: User = {
+      ...updated,
+      id: updated.id || updated._id || userId,
+      name: updated.name || updated.fullName || updates.name || 'User',
+      dateOfBirth: updated.dateOfBirth || updates.dateOfBirth,
+      gender: updated.gender ?? updates.gender,
+      address: updated.address ?? updates.address,
+      favorites: Array.isArray(updated.favorites) ? updated.favorites : [],
+      bookings: Array.isArray(updated.bookings) ? updated.bookings : [],
+      createdAt: updated.createdAt || new Date().toISOString(),
+    };
+    await AsyncStorage.setItem('user_data', JSON.stringify(normalizedUser));
+    return normalizedUser;
   }
 
   async addToFavorites(userId: string, destinationId: string): Promise<boolean> {

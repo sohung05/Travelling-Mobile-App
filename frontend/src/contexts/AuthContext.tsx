@@ -27,7 +27,7 @@ interface AuthContextType {
   setPendingScreenAccess: (screenName: string) => void;
   clearPendingScreen: () => void;
   updateUserAvatar: (avatarUrl: string) => void;
-  updateUserInfo: (updatedInfo: Partial<User>) => void;
+  updateUserInfo: (updatedInfo: Partial<User>) => Promise<User | null>;
   refreshUserData: () => void;
   userReviews: Review[];
   addReview: (review: Review) => void;
@@ -519,15 +519,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateUserInfo = async (updatedInfo: Partial<User>) => {
     if (user) {
-      setUser(prev => prev ? { ...prev, ...updatedInfo } : null);
-      
-      // Update backend
       try {
-        await userService.updateUser(user.id, updatedInfo);
+        const updatedUser = await userService.updateUser(user.id, updatedInfo);
+        setUser(updatedUser);
+        return updatedUser;
       } catch (error) {
         console.error('Failed to update user info on backend:', error);
+        throw error;
       }
     }
+    return null;
   };
 
   // Notification functions
