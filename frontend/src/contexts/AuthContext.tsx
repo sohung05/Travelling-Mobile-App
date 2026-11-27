@@ -198,7 +198,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: Partial<User> & { password?: string; name?: string; phone?: string; dateOfBirth?: string; gender?: string; address?: string }): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await authService.register({
+      await authService.register({
         email: userData.email || '',
         password: userData.password || 'defaultPassword123',
         fullName: userData.name || '',
@@ -208,8 +208,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         address: userData.address
       });
       
-      setUser(response.user);
-      await loadUserData(response.user.id);
+      await logout();
       return true;
     } catch (error) {
       console.error('Registration failed:', error);

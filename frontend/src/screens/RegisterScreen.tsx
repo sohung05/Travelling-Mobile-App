@@ -83,7 +83,7 @@ const RegisterScreen = () => {
       });
 
       if (success) {
-        navigation.replace('RegisterSuccess');
+        navigation.replace('Login');
       } else {
         setErrors({ general: 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin và thử lại.' });
       }
