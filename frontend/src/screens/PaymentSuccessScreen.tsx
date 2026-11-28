@@ -15,7 +15,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination } from '../types';
+<<<<<<< HEAD
+import { formatPriceAmount } from '../utils/destination';
+=======
 import { useDarkMode } from '../contexts/DarkModeContext';
+>>>>>>> fd6416ce4df0d450696c3f2d611a2ca3aa228ced
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'PaymentSuccess'>;
@@ -118,7 +122,7 @@ const PaymentSuccessScreen = () => {
           <View style={styles.detailRow}>
             <Ionicons name="cash" size={20} color={COLORS.primary} />
             <Text style={styles.detailLabel}>Tổng tiền</Text>
-            <Text style={styles.detailValue}>${totalPrice || 0}</Text>
+            <Text style={styles.detailValue}>{formatPriceAmount(totalPrice || 0)}</Text>
           </View>
 
           <View style={styles.detailRow}>

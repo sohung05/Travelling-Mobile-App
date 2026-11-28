@@ -28,18 +28,22 @@ export const getDestinationPrice = (destination?: DestinationLike | null): numbe
   return toNumber(destination?.price, 0);
 };
 
-export const formatDestinationPrice = (destination?: DestinationLike | null): string => {
-  const amount = getDestinationPrice(destination);
+export const formatPriceAmount = (rawAmount: unknown): string => {
+  const amount = toNumber(rawAmount, NaN);
   if (!Number.isFinite(amount)) return 'Liên hệ';
-  // Heuristic: large values are typically VND amounts in this app's data
   if (amount >= 100000) {
     try {
-      return `${new Intl.NumberFormat('vi-VN').format(amount)} ₫`;
+      return `${new Intl.NumberFormat('vi-VN').format(Math.round(amount))} ₫`;
     } catch {
       return `${Math.round(amount).toLocaleString('vi-VN')} ₫`;
     }
   }
   return `$${amount.toLocaleString('en-US')}`;
+};
+
+export const formatDestinationPrice = (destination?: DestinationLike | null): string => {
+  const amount = getDestinationPrice(destination);
+  return formatPriceAmount(amount);
 };
 
 export const getDestinationReviewCount = (destination?: DestinationLike | null): number => {

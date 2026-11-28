@@ -13,8 +13,7 @@ spring:
       # Format: mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
       # Thay thế <username>, <password>, <cluster>, và <database> bằng thông tin của bạn
       # Lưu ý: Nếu password có ký tự đặc biệt, cần URL-encode (ví dụ: @ -> %40, # -> %23, / -> %2F)
-      uri: mongodb+srv://admin:truongtranhung27012005@cluster0.q6gisy3.mongodb.net/travelling_db?retryWrites=true&w=majority&appName=Cluster0
-      auto-index-creation: false
+      uri: mongodb+srv://travelling_app:anh23652611@cluster0.g8faeoa.mongodb.net/travelling_db?retryWrites=true&w=majority&appName=Cluster0
       
     redis:
       host: localhost

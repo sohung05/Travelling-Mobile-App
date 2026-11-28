@@ -17,7 +17,11 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination, Booking } from '../types';
 import { Header, Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+<<<<<<< HEAD
+import { formatPriceAmount } from '../utils/destination';
+=======
 import { useDarkMode } from '../contexts/DarkModeContext';
+>>>>>>> fd6416ce4df0d450696c3f2d611a2ca3aa228ced
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'Payment'>;
@@ -59,9 +63,9 @@ const PaymentScreen = () => {
       : Number(String(destination.price || '').replace(/[^\d.-]/g, '')) || 0;
     services.forEach(serviceId => {
       // Add service prices here if needed
-      if (serviceId === '2') total += 200; // Premium package
-      if (serviceId === '3') total += 500; // Luxury package
-      if (serviceId === '4') total += 50;  // Photography service
+      if (serviceId === '2') total += 4990000; // Gói Nâng Cao
+      if (serviceId === '3') total += 12990000; // Gói Luxury
+      if (serviceId === '4') total += 1290000;  // Chụp ảnh kỷ niệm
     });
     return total * (participants || 1);
   };
@@ -72,8 +76,8 @@ const PaymentScreen = () => {
   const getServiceName = (serviceId: string): string => {
     const serviceNames: Record<string, string> = {
       '1': 'Gói Cơ Bản',
-      '2': 'Gói Tiêu Chuẩn',
-      '3': 'Gói Cao Cấp',
+      '2': 'Gói Nâng Cao',
+      '3': 'Gói Luxury',
       '4': 'Chụp ảnh kỷ niệm'
     };
     return serviceNames[serviceId] || serviceId;
@@ -211,19 +215,19 @@ const PaymentScreen = () => {
               <View style={styles.priceBreakdown}>
                 <View style={styles.priceRow}>
                   <Text style={styles.priceLabel}>Giá tour</Text>
-                  <Text style={styles.priceValue}>${bookingSummary.subtotal}</Text>
+                  <Text style={styles.priceValue}>{formatPriceAmount(bookingSummary.subtotal)}</Text>
                 </View>
 
                 <View style={styles.priceRow}>
                   <Text style={styles.priceLabel}>Thuế & phí dịch vụ</Text>
-                  <Text style={styles.priceValue}>${bookingSummary.tax}</Text>
+                  <Text style={styles.priceValue}>{formatPriceAmount(bookingSummary.tax)}</Text>
                 </View>
 
                 <View style={styles.priceDivider} />
 
                 <View style={styles.totalRow}>
                   <Text style={styles.totalLabel}>Tổng cộng</Text>
-                  <Text style={styles.totalValue}>${bookingSummary.total}</Text>
+                  <Text style={styles.totalValue}>{formatPriceAmount(bookingSummary.total)}</Text>
                 </View>
               </View>
             </View>
@@ -305,7 +309,7 @@ const PaymentScreen = () => {
         <View style={styles.bottomAction}>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Tổng cộng</Text>
-          <Text style={styles.totalValue}>${bookingSummary.total}</Text>
+          <Text style={styles.totalValue}>{formatPriceAmount(bookingSummary.total)}</Text>
         </View>
         <Button
           title={processing ? "Đang xử lý..." : "Thanh toán"}

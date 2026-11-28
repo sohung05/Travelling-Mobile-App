@@ -109,8 +109,8 @@ const TourServicesScreen = () => {
       id: '2',
       name: 'Gói Nâng Cao',
       description: 'Dịch vụ cao cấp với nhiều tiện ích',
-      price: 200,
-      duration: '',
+      price: 4990000,
+      duration: 'Phổ biến',
       icon: 'star',
       included: [
         'Khách sạn 4 sao',
@@ -125,7 +125,7 @@ const TourServicesScreen = () => {
       id: '3',
       name: 'Gói Luxury',
       description: 'Trải nghiệm cao cấp nhất',
-      price: 500,
+      price: 12990000,
       duration: '',
       icon: 'diamond',
       included: [
@@ -142,8 +142,8 @@ const TourServicesScreen = () => {
       id: '4',
       name: 'Chụp ảnh kỷ niệm',
       description: 'Dịch vụ chụp ảnh chuyên nghiệp',
-      price: 50,
-      duration: '+$50',
+      price: 1290000,
+      duration: '+1.290.000 ₫',
       icon: 'camera',
       included: [
         'Chụp ảnh chuyên nghiệp',
@@ -431,11 +431,11 @@ const TourServicesScreen = () => {
                     </View>
                     <View style={styles.servicePrice}>
                       <Text style={styles.priceText}>
-                        {service.price === 0 ? 'Miễn phí' : `$${service.price}`}
+                        {service.price === 0 ? 'Miễn phí' : formatAmount(service.price)}
                       </Text>
-                      {service.price > 0 && service.duration && (
+                      {service.price > 0 && service.duration ? (
                         <Text style={styles.durationText}>{service.duration}</Text>
-                      )}
+                      ) : null}
                     </View>
                   </View>
 
@@ -506,7 +506,7 @@ const TourServicesScreen = () => {
                       {service.price === 0 ? (
                         <Text style={styles.freeText}>Miễn phí</Text>
                       ) : (
-                        <Text style={styles.priceText}>+${service.price}</Text>
+                        <Text style={styles.priceText}>+{formatAmount(service.price)}</Text>
                       )}
                     </View>
                   </View>
