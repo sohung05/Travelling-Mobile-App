@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { formatPriceAmount } from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'PaymentResult'>;
@@ -190,7 +191,7 @@ const PaymentResultScreen = () => {
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Số tiền</Text>
               <Text style={styles.detailValue}>
-                ${resultData.totalPrice.toFixed(2).replace(/\.00$/, '')}
+                {formatPriceAmount(resultData.totalPrice)}
               </Text>
             </View>
           </View>

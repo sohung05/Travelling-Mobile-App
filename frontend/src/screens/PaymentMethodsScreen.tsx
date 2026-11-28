@@ -19,6 +19,7 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { paymentMethodService } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { formatPriceAmount } from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'PaymentMethods'>;
@@ -230,7 +231,7 @@ const PaymentMethodsScreen = () => {
         <View style={styles.footerContent}>
             <View style={styles.totalContainer}>
             <Text style={styles.totalLabel}>Tổng cộng</Text>
-            <Text style={styles.totalValue}>${totalPrice.toFixed(2).replace(/\.00$/, '')}</Text>
+            <Text style={styles.totalValue}>{formatPriceAmount(totalPrice)}</Text>
           </View>
           <TouchableOpacity
             style={[

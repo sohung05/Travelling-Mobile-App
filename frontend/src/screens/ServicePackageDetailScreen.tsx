@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList } from '../types';
+import { formatPriceAmount } from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'ServicePackageDetail'>;
@@ -262,7 +263,7 @@ const ServicePackageDetailScreen = () => {
             <Text style={styles.packageName}>{servicePackage.name}</Text>
             <Text style={styles.packageDescription}>{servicePackage.description}</Text>
             <Text style={styles.priceText}>
-              {servicePackage.price === 0 ? 'Miễn phí' : `$${servicePackage.price}/người`}
+              {servicePackage.price === 0 ? 'Miễn phí' : `${formatPriceAmount(servicePackage.price)}/người`}
             </Text>
           </View>
 

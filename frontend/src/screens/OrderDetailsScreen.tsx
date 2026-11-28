@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Booking, Destination } from '../types';
+import { formatPriceAmount } from '../utils/destination';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'OrderDetails'>;
@@ -78,8 +79,8 @@ const OrderDetailsScreen = () => {
   const getServiceName = (serviceId: string): string => {
     const serviceNames: Record<string, string> = {
       '1': 'Gói Cơ Bản',
-      '2': 'Gói Tiêu Chuẩn',
-      '3': 'Gói Cao Cấp',
+      '2': 'Gói Nâng Cao',
+      '3': 'Gói Luxury',
       '4': 'Chụp ảnh kỷ niệm',
     };
     return serviceNames[serviceId] || `Dịch vụ ${serviceId}`;
@@ -315,16 +316,16 @@ const OrderDetailsScreen = () => {
           </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Giá tour</Text>
-            <Text style={styles.priceValue}>${orderData.subtotal}</Text>
+            <Text style={styles.priceValue}>{formatPriceAmount(orderData.subtotal)}</Text>
           </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Thuế & Phí</Text>
-            <Text style={styles.priceValue}>${orderData.tax}</Text>
+            <Text style={styles.priceValue}>{formatPriceAmount(orderData.tax)}</Text>
           </View>
           <View style={styles.priceDivider} />
           <View style={styles.priceRow}>
             <Text style={styles.totalLabel}>Tổng cộng</Text>
-            <Text style={styles.totalValue}>${orderData.total}</Text>
+            <Text style={styles.totalValue}>{formatPriceAmount(orderData.total)}</Text>
           </View>
         </View>
 

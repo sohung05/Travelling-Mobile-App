@@ -16,6 +16,7 @@ import { RootStackParamList } from '../types';
 import { Header, Button } from '../components';
 import { bookingService } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { formatPriceAmount } from '../utils/destination';
 
 type RouteProps = RouteProp<RootStackParamList, 'BookingDetail'>;
 
@@ -201,14 +202,14 @@ const BookingDetailScreen = () => {
             <View style={styles.detailCard}>
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>Giá tour</Text>
-                <Text style={styles.priceValue}>${booking.totalPrice}</Text>
+                <Text style={styles.priceValue}>{formatPriceAmount(booking.totalPrice)}</Text>
               </View>
               
               <View style={styles.divider} />
               
               <View style={styles.priceRow}>
                 <Text style={styles.totalLabel}>Tổng cộng</Text>
-                <Text style={styles.totalValue}>${booking.totalPrice}</Text>
+                <Text style={styles.totalValue}>{formatPriceAmount(booking.totalPrice)}</Text>
               </View>
 
               {booking.paymentMethod && (
