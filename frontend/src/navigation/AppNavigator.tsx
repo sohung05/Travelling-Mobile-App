@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList, MainTabParamList } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 // Screens
 import LoadingScreen from '../screens/LoadingScreen';
@@ -47,6 +48,7 @@ const Tab = createBottomTabNavigator<any>();
 
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
+  const { isDarkMode, colors } = useDarkMode();
   const isIos = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
   const isMobileView = isWeb && (
@@ -82,8 +84,8 @@ const MainTabs = () => {
 
           return <Ionicons name={iconName} size={22} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.primary, // Teal #0D9488
-        tabBarInactiveTintColor: COLORS.textSecondary, // Slate #64748B
+        tabBarActiveTintColor: isDarkMode ? colors.primary : COLORS.primary,
+        tabBarInactiveTintColor: isDarkMode ? colors.textSecondary : COLORS.textSecondary,
         tabBarStyle: {
           position: 'absolute',
           bottom: bottomOffset,
@@ -91,9 +93,9 @@ const MainTabs = () => {
           right: 16,
           height: 66,
           borderRadius: 28,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: isDarkMode ? colors.card : '#FFFFFF',
           borderWidth: 1,
-          borderColor: '#E2EEEC',
+          borderColor: isDarkMode ? colors.border : '#E2EEEC',
           paddingTop: 4,
           paddingBottom: 4,
           paddingHorizontal: 8,
@@ -153,8 +155,23 @@ const MainTabs = () => {
 };
 
 export const AppNavigator = () => {
+  const { isDarkMode, colors } = useDarkMode();
+  const navigationTheme = isDarkMode
+    ? {
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          primary: colors.primary,
+          background: colors.background,
+          card: colors.card,
+          text: colors.text,
+          border: colors.border,
+        },
+      }
+    : DefaultTheme;
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,

@@ -19,10 +19,12 @@ import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { Button } from '../components';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LoginScreen = () => {
+  const { colors } = useDarkMode();
   const navigation = useNavigation<NavigationProp>();
   const { login, pendingTourBooking, clearPendingTour, pendingScreen, clearPendingScreen } = useAuth();
   const [email, setEmail] = useState('');
@@ -73,7 +75,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Editorial Header */}
       <View style={styles.header}>
         <TouchableOpacity

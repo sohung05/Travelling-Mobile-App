@@ -16,7 +16,11 @@ import { RootStackParamList } from '../types';
 import { Header, Button } from '../components';
 import { bookingService } from '../api';
 import { useAuth } from '../contexts/AuthContext';
+<<<<<<< HEAD
 import { formatPriceAmount } from '../utils/destination';
+=======
+import { useDarkMode } from '../contexts/DarkModeContext';
+>>>>>>> fd6416ce4df0d450696c3f2d611a2ca3aa228ced
 
 type RouteProps = RouteProp<RootStackParamList, 'BookingDetail'>;
 
@@ -24,6 +28,7 @@ const BookingDetailScreen = () => {
   const route = useRoute<RouteProps>();
   const navigation = useNavigation();
   const { removeBooking } = useAuth();
+  const { colors } = useDarkMode();
   const { booking } = route.params;
 
   const handleCancelBooking = async () => {
@@ -93,7 +98,7 @@ const BookingDetailScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <Header 
         title="Chi tiết đặt chỗ" 
         showBack 

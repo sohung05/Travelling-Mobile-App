@@ -82,7 +82,7 @@ const TermsOfServiceScreen = () => {
                 </View>
                 <View style={styles.updateInfo}>
                   <Text style={styles.updateTitle}>Cập nhật lần cuối</Text>
-                  <Text style={styles.updateValue}>15 tháng 12, 2024</Text>
+                  <Text style={styles.updateValue}>15 tháng 01, 2026</Text>
                 </View>
               </View>
             </View>
@@ -155,7 +155,7 @@ const TermsOfServiceScreen = () => {
                 </View>
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Địa chỉ</Text>
-                  <Text style={styles.contactValue}>123 Đường ABC, Quận 1, TP.HCM</Text>
+                  <Text style={styles.contactValue}>Số 12 Nguyễn Văn Bảo, P. Hạnh Thông, Thành phố Hồ Chí Minh</Text>
                 </View>
               </View>
             </View>

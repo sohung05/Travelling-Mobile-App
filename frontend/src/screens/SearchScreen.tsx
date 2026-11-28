@@ -22,12 +22,14 @@ import { destinationService, userService, useDestinations } from '../api';
 import { SearchBar, Header } from '../components';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDestinationPrice, getDestinationPrice, getDestinationReviewCount } from '../utils/destination';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 const { width } = Dimensions.get('window');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const SearchScreen = () => {
+  const { colors } = useDarkMode();
   const navigation = useNavigation<NavigationProp>();
   const { isGuest, userFavorites, addFavorite, removeFavorite } = useAuth();
   const { data: allDestinations = [] } = useDestinations();
@@ -345,7 +347,7 @@ const SearchScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <Header
         title="Tìm kiếm"
         showBack

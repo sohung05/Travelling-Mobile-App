@@ -93,6 +93,9 @@ public class UserService {
         if (userDetails.getFullName() != null) {
             user.setFullName(userDetails.getFullName());
         }
+        if (userDetails.getEmail() != null) {
+            user.setEmail(userDetails.getEmail());
+        }
         if (userDetails.getPhone() != null) {
             user.setPhone(userDetails.getPhone());
         }

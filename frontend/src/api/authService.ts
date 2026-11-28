@@ -98,62 +98,23 @@ class AuthService {
   }
 
   async register(userData: RegisterRequest): Promise<AuthResponse> {
-    try {
-      const response = await HttpClient.post<any>(API_CONFIG.ENDPOINTS.REGISTER, userData);
-      const rawUser = response?.user || {};
-      const normalizedUser: User = {
-        ...rawUser,
-        id: rawUser.id || rawUser._id || '',
-        name: rawUser.name || rawUser.fullName || userData.fullName || 'User',
-        email: rawUser.email || userData.email,
-        favorites: Array.isArray(rawUser.favorites) ? rawUser.favorites : [],
-        bookings: Array.isArray(rawUser.bookings) ? rawUser.bookings : [],
-        createdAt: rawUser.createdAt || new Date().toISOString(),
-      };
-      const normalizedResponse: AuthResponse = {
-        ...response,
-        user: normalizedUser,
-      };
+    const response = await HttpClient.post<any>(API_CONFIG.ENDPOINTS.REGISTER, userData);
+    const rawUser = response?.user || {};
+    const normalizedUser: User = {
+      ...rawUser,
+      id: rawUser.id || rawUser._id || '',
+      name: rawUser.name || rawUser.fullName || userData.fullName || 'User',
+      email: rawUser.email || userData.email,
+      favorites: Array.isArray(rawUser.favorites) ? rawUser.favorites : [],
+      bookings: Array.isArray(rawUser.bookings) ? rawUser.bookings : [],
+      createdAt: rawUser.createdAt || new Date().toISOString(),
+    };
+    const normalizedResponse: AuthResponse = {
+      ...response,
+      user: normalizedUser,
+    };
 
-      if (normalizedResponse.token) {
-        await AsyncStorage.setItem('auth_token', normalizedResponse.token);
-        await AsyncStorage.setItem('user_id', normalizedResponse.user.id);
-        await AsyncStorage.setItem('user_data', JSON.stringify(normalizedResponse.user));
-      }
-
-      return normalizedResponse;
-    } catch (error) {
-      const isNetworkFailure =
-        error instanceof TypeError ||
-        (error instanceof Error && /Network request failed|Failed to fetch|NetworkError|ECONNREFUSED|timeout/i.test(error.message));
-
-      if (!isNetworkFailure) {
-        throw error;
-      }
-
-      console.log('Backend ch?a s?n s?ng, l?u t?i kho?n mock t?m th?i');
-      const newUser: User = {
-        id: `mock_user_${Date.now()}`,
-        name: userData.fullName || 'Th?nh vi?n m?i',
-        email: userData.email,
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-        phone: userData.phone || '0988888888',
-        dateOfBirth: userData.dateOfBirth,
-        nationality: 'Vi?t Nam',
-        favorites: [],
-        bookings: [],
-        createdAt: new Date().toISOString(),
-      };
-      const mockResponse: AuthResponse = {
-        token: `mock_token_${Date.now()}`,
-        user: newUser,
-        message: '??ng k? t?i kho?n th?nh c?ng',
-      };
-      await AsyncStorage.setItem('auth_token', mockResponse.token);
-      await AsyncStorage.setItem('user_id', mockResponse.user.id);
-      await AsyncStorage.setItem('user_data', JSON.stringify(mockResponse.user));
-      return mockResponse;
-    }
+    return normalizedResponse;
   }
 
   async logout(): Promise<void> {

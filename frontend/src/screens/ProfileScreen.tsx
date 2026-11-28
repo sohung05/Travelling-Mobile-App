@@ -18,6 +18,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES, FONTS, SHADOWS, DEFAULT_AVATAR } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 import { Loading, SectionEyebrow, Button } from '../components';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -25,9 +26,9 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const ProfileScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { user, isGuest, logout, userBookings, userFavorites, isLoading, setPendingScreenAccess } = useAuth();
+  const { isDarkMode, toggleDarkMode, colors } = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
 
   // Show loading if still loading user data
   if (isLoading) {
@@ -183,7 +184,10 @@ const ProfileScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['top']}
+    >
       {/* Header */}
       <View style={styles.header}>
         <SectionEyebrow 
@@ -195,22 +199,25 @@ const ProfileScreen = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* User Info Card */}
-        <View style={styles.userCard}>
+        <View style={[styles.userCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Image
             source={{ uri: isGuest ? DEFAULT_AVATAR : (user?.avatar || DEFAULT_AVATAR) }}
             style={styles.avatar}
           />
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>
+            <Text style={[styles.userName, { color: colors.text }]}>
               {isGuest ? 'Khách trải nghiệm' : (user?.name || 'Thành viên')}
             </Text>
-            <Text style={styles.userEmail} numberOfLines={1}>
+            <Text style={[styles.userEmail, { color: colors.textSecondary }]} numberOfLines={1}>
               {isGuest ? 'Đăng nhập để nhận ưu đãi tour' : (user?.email || 'user@example.com')}
             </Text>
           </View>
           {!isGuest && (
             <TouchableOpacity 
-              style={styles.editButton}
+              style={[styles.editButton, {
+                backgroundColor: isDarkMode ? colors.border : '#E6F4F2',
+                borderColor: isDarkMode ? colors.border : '#D1EAE6',
+              }]}
               onPress={() => handleNavigateWithAuth('PersonalInfo', 'Profile')}
               activeOpacity={0.7}
             >
@@ -244,14 +251,19 @@ const ProfileScreen = () => {
           });
           
           return (
-            <View style={styles.statsContainer}>
+            <View style={[styles.statsContainer, {
+              backgroundColor: isDarkMode ? colors.card : '#E6F4F2',
+              borderColor: isDarkMode ? colors.border : '#D1EAE6',
+            }]}>
               <TouchableOpacity 
                 style={styles.statItem}
                 onPress={() => handleNavigateWithAuth('Bookings', 'Bookings')}
                 activeOpacity={0.8}
               >
-                <Text style={styles.statValue}>{upcomingBookings.length}</Text>
-                <Text style={styles.statLabel}>Chuyến đi sắp tới</Text>
+                <Text style={[styles.statValue, { color: isDarkMode ? '#66BB6A' : COLORS.primaryDark }]}>
+                  {upcomingBookings.length}
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Chuyến đi sắp tới</Text>
               </TouchableOpacity>
               <View style={styles.statDivider} />
               <TouchableOpacity 
@@ -259,8 +271,10 @@ const ProfileScreen = () => {
                 onPress={() => handleNavigateWithAuth('Favorites', 'Favorites')}
                 activeOpacity={0.8}
               >
-                <Text style={styles.statValue}>{userFavorites.length}</Text>
-                <Text style={styles.statLabel}>Điểm đến đã lưu</Text>
+                <Text style={[styles.statValue, { color: isDarkMode ? '#66BB6A' : COLORS.primaryDark }]}>
+                  {userFavorites.length}
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Điểm đến đã lưu</Text>
               </TouchableOpacity>
             </View>
           );
@@ -270,63 +284,69 @@ const ProfileScreen = () => {
         <View style={styles.section}>
           <SectionEyebrow title="Tùy chọn ứng dụng" style={{ paddingHorizontal: 0, marginBottom: SIZES.sm }} />
           
-          <View style={styles.menuCard}>
+          <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {/* Notifications Toggle */}
             <View style={styles.menuItemContainer}>
               <View style={styles.menuItemLeft}>
-                <View style={styles.menuIcon}>
+                <View style={[styles.menuIcon, {
+                  backgroundColor: isDarkMode ? colors.border : '#E6F4F2',
+                }]}>
                   <Ionicons name="notifications-outline" size={18} color={COLORS.primary} />
                 </View>
-                <Text style={styles.menuItemText}>Thông báo hành trình</Text>
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Thông báo hành trình</Text>
               </View>
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: COLORS.hairline, true: '#99F6E4' }}
-                thumbColor={notificationsEnabled ? COLORS.primary : COLORS.slate}
+                trackColor={{ false: colors.border, true: '#99F6E4' }}
+                thumbColor={notificationsEnabled ? colors.primary : colors.textSecondary}
               />
             </View>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
             {/* Dark Mode Toggle */}
             <View style={styles.menuItemContainer}>
               <View style={styles.menuItemLeft}>
-                <View style={styles.menuIcon}>
+                <View style={[styles.menuIcon, {
+                  backgroundColor: isDarkMode ? colors.border : '#E6F4F2',
+                }]}>
                   <Ionicons name="moon-outline" size={18} color={COLORS.primary} />
                 </View>
-                <Text style={styles.menuItemText}>Chế độ ban đêm</Text>
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Chế độ ban đêm</Text>
               </View>
               <Switch
-                value={darkModeEnabled}
-                onValueChange={setDarkModeEnabled}
-                trackColor={{ false: COLORS.hairline, true: '#99F6E4' }}
-                thumbColor={darkModeEnabled ? COLORS.primary : COLORS.slate}
+                value={isDarkMode}
+                onValueChange={toggleDarkMode}
+                trackColor={{ false: colors.border, true: '#99F6E4' }}
+                thumbColor={isDarkMode ? colors.primary : colors.textSecondary}
               />
             </View>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
             {/* Menu Items */}
             {menuItems.map((item, index) => (
               <View key={item.id}>
-                {index > 0 && <View style={styles.divider} />}
+                {index > 0 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
                 <TouchableOpacity
                   style={styles.menuItemContainer}
                   onPress={item.onPress}
                   activeOpacity={0.7}
                 >
                   <View style={styles.menuItemLeft}>
-                    <View style={styles.menuIcon}>
+                    <View style={[styles.menuIcon, {
+                      backgroundColor: isDarkMode ? colors.border : '#E6F4F2',
+                    }]}>
                       <Ionicons name={item.icon as any} size={18} color={COLORS.primary} />
                     </View>
-                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Text style={[styles.menuItemText, { color: colors.text }]}>{item.title}</Text>
                   </View>
                   <View style={styles.menuItemRight}>
                     {item.value && (
-                      <Text style={styles.menuItemValue}>{item.value}</Text>
+                      <Text style={[styles.menuItemValue, { color: colors.textSecondary }]}>{item.value}</Text>
                     )}
-                    <Ionicons name="chevron-forward" size={16} color={COLORS.slate} />
+                    <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
                   </View>
                 </TouchableOpacity>
               </View>
@@ -338,22 +358,24 @@ const ProfileScreen = () => {
         <View style={styles.section}>
           <SectionEyebrow title="Hỗ trợ & Thông tin" style={{ paddingHorizontal: 0, marginBottom: SIZES.sm }} />
           
-          <View style={styles.menuCard}>
+          <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {supportItems.map((item, index) => (
               <View key={item.id}>
-                {index > 0 && <View style={styles.divider} />}
+                {index > 0 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
                 <TouchableOpacity
                   style={styles.menuItemContainer}
                   onPress={item.onPress}
                   activeOpacity={0.7}
                 >
                   <View style={styles.menuItemLeft}>
-                    <View style={styles.menuIcon}>
+                    <View style={[styles.menuIcon, {
+                      backgroundColor: isDarkMode ? colors.border : '#E6F4F2',
+                    }]}>
                       <Ionicons name={item.icon as any} size={18} color={COLORS.primary} />
                     </View>
-                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Text style={[styles.menuItemText, { color: colors.text }]}>{item.title}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={16} color={COLORS.slate} />
+                  <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -364,7 +386,10 @@ const ProfileScreen = () => {
         {!isGuest && (
           <View style={styles.section}>
             <TouchableOpacity 
-              style={styles.logoutButton} 
+              style={[styles.logoutButton, {
+                backgroundColor: colors.card,
+                borderColor: isDarkMode ? '#7F1D1D' : '#FEE2E2',
+              }]}
               activeOpacity={0.8}
               onPress={handleLogout}
             >

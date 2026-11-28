@@ -27,7 +27,7 @@ interface AuthContextType {
   setPendingScreenAccess: (screenName: string) => void;
   clearPendingScreen: () => void;
   updateUserAvatar: (avatarUrl: string) => void;
-  updateUserInfo: (updatedInfo: Partial<User>) => void;
+  updateUserInfo: (updatedInfo: Partial<User>) => Promise<User | null>;
   refreshUserData: () => void;
   userReviews: Review[];
   addReview: (review: Review) => void;
@@ -198,7 +198,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: Partial<User> & { password?: string; name?: string; phone?: string; dateOfBirth?: string; gender?: string; address?: string }): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await authService.register({
+      await authService.register({
         email: userData.email || '',
         password: userData.password || 'defaultPassword123',
         fullName: userData.name || '',
@@ -208,8 +208,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         address: userData.address
       });
       
-      setUser(response.user);
-      await loadUserData(response.user.id);
+      await logout();
       return true;
     } catch (error) {
       console.error('Registration failed:', error);
@@ -520,15 +519,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateUserInfo = async (updatedInfo: Partial<User>) => {
     if (user) {
-      setUser(prev => prev ? { ...prev, ...updatedInfo } : null);
-      
-      // Update backend
       try {
-        await userService.updateUser(user.id, updatedInfo);
+        const updatedUser = await userService.updateUser(user.id, updatedInfo);
+        setUser(updatedUser);
+        return updatedUser;
       } catch (error) {
         console.error('Failed to update user info on backend:', error);
+        throw error;
       }
     }
+    return null;
   };
 
   // Notification functions

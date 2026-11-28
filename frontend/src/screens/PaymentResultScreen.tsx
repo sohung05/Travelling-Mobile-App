@@ -14,7 +14,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+<<<<<<< HEAD
 import { formatPriceAmount } from '../utils/destination';
+=======
+import { useDarkMode } from '../contexts/DarkModeContext';
+>>>>>>> fd6416ce4df0d450696c3f2d611a2ca3aa228ced
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'PaymentResult'>;
@@ -35,6 +39,7 @@ interface PaymentResultData {
 
 const PaymentResultScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const route = useRoute<RouteProps>();
   const params = route.params as any;
   const { user, refreshBookings } = useAuth();
@@ -93,7 +98,7 @@ const PaymentResultScreen = () => {
   // Only show success screen for now
   if (!resultData.success) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -140,7 +145,7 @@ const PaymentResultScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         style={styles.scrollView}

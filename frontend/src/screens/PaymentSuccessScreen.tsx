@@ -15,13 +15,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { RootStackParamList, Destination } from '../types';
+<<<<<<< HEAD
 import { formatPriceAmount } from '../utils/destination';
+=======
+import { useDarkMode } from '../contexts/DarkModeContext';
+>>>>>>> fd6416ce4df0d450696c3f2d611a2ca3aa228ced
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type RouteProps = RouteProp<RootStackParamList, 'PaymentSuccess'>;
 
 const PaymentSuccessScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const route = useRoute<RouteProps>();
   const { destination, services } = route.params;
   const departureDate = (route.params as any).departureDate;
@@ -42,7 +47,7 @@ const PaymentSuccessScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <LinearGradient
         colors={[COLORS.primary, COLORS.secondary]}
         style={styles.header}

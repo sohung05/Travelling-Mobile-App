@@ -23,11 +23,13 @@ import { FilterOptions, getCategoryGroup } from '../components/FilterModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDestinationPrice, getDestinationPrice, getDestinationReviewCount } from '../utils/destination';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const ExploreScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors } = useDarkMode();
   const route = useRoute<any>();
   const queryClient = useQueryClient();
   const { isGuest, userFavorites, addFavorite, removeFavorite } = useAuth();
@@ -339,7 +341,7 @@ const ExploreScreen = () => {
   // Bỏ loading spinner, hiển thị nội dung ngay lập tức
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header with Section Eyebrow */}
       <View style={styles.header}>
         <SectionEyebrow 
